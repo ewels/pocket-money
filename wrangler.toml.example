@@ -1,0 +1,9 @@
+name = "pocket-money"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".svelte-kit/cloudflare"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pocket-money-db"
+database_id = "your-database-id-here"  # Get this from: wrangler d1 create pocket-money-db
