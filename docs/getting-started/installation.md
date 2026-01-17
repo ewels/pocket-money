@@ -75,32 +75,6 @@ npm run dev
 
 The app will be available at `http://localhost:5173`.
 
-## Regenerating Screenshots
-
-The documentation includes screenshots that may need updating after UI changes.
-
-To regenerate all screenshots:
-
-1. Reset the local database for a fresh state:
-   ```bash
-   rm -rf .wrangler
-   npm run db:migrate
-   wrangler d1 execute pocket-money-db --local --file=./migrations/0002_photo_data.sql
-   wrangler d1 execute pocket-money-db --local --file=./migrations/0003_families.sql
-   ```
-
-2. Start the dev server:
-   ```bash
-   npm run dev
-   ```
-
-3. In another terminal, run the screenshot script:
-   ```bash
-   npm run screenshots
-   ```
-
-This will capture fresh screenshots and save them to `docs/assets/screenshots/`.
-
 ## Next Steps
 
 Ready to deploy? See the [Deployment Guide](deployment.md).

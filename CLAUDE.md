@@ -119,7 +119,18 @@ npm run dev          # Start dev server
 npm run build        # Build for production
 npm run db:migrate   # Run local migrations
 npm run db:migrate:prod  # Run production migrations
+npm run screenshots  # Regenerate documentation screenshots
 ```
+
+## Documentation Screenshots
+
+The docs include screenshots in `docs/assets/screenshots/`. After UI changes, regenerate them:
+
+1. Reset local database: `rm -rf .wrangler && npm run db:migrate && wrangler d1 execute pocket-money-db --local --file=./migrations/0002_photo_data.sql && wrangler d1 execute pocket-money-db --local --file=./migrations/0003_families.sql`
+2. Start dev server: `npm run dev`
+3. Run: `npm run screenshots`
+
+The script at `scripts/capture-screenshots.ts` automates capturing all screens. See `CONTRIBUTING.md` for details.
 
 ## Testing Locally
 
