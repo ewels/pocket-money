@@ -11,3 +11,4 @@ wrangler.toml
 .wrangler
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+.playwright-mcp
