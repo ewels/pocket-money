@@ -14,7 +14,7 @@ flowchart TB
             API["API Routes"]
             Hooks["Server Hooks"]
         end
-        D1[("Cloudflare D1\n(SQLite)")]
+        D1[("Cloudflare D1 (SQLite)")]
     end
 
     Routes --> D1
