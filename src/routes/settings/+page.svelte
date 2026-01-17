@@ -121,13 +121,31 @@
                   <p class="font-mono text-lg font-bold text-blue-900 tracking-wider">{activeInviteCode.code}</p>
                   <p class="text-xs text-blue-600 mt-1">Expires {formatExpiry(activeInviteCode.expiresAt)}</p>
                 </div>
-                <button
-                  type="button"
-                  class="btn-secondary text-sm"
-                  onclick={() => copyInviteCode(activeInviteCode.code)}
-                >
-                  {copiedCode ? 'Copied!' : 'Copy'}
-                </button>
+                <div class="flex gap-2">
+                  <button
+                    type="button"
+                    class="btn-secondary text-sm"
+                    onclick={() => copyInviteCode(activeInviteCode.code)}
+                  >
+                    {copiedCode ? 'Copied!' : 'Copy'}
+                  </button>
+                  <form
+                    method="POST"
+                    action="?/revokeInvite"
+                    use:enhance={() => {
+                      loading = true;
+                      return async ({ update }) => {
+                        loading = false;
+                        await update();
+                      };
+                    }}
+                  >
+                    <input type="hidden" name="code" value={activeInviteCode.code} />
+                    <button type="submit" class="btn-danger text-sm" disabled={loading}>
+                      Revoke
+                    </button>
+                  </form>
+                </div>
               </div>
               <p class="text-xs text-blue-700 mt-2">
                 Share this code with a family member. They can use it when registering to join your family.

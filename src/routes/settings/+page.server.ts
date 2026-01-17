@@ -6,7 +6,8 @@ import {
   getFamily,
   getFamilyMembers,
   getActiveInviteCode,
-  generateInviteCode
+  generateInviteCode,
+  deleteInviteCode
 } from '$lib/server/db';
 import { hashPin, verifyPin } from '$lib/server/auth';
 
@@ -176,5 +177,27 @@ export const actions: Actions = {
         expiresAt: inviteCode.expires_at
       }
     };
+  },
+
+  revokeInvite: async ({ request, platform, locals }) => {
+    if (!locals.user?.family_id) {
+      return fail(401, { error: 'Not authenticated' });
+    }
+
+    const db = platform?.env?.DB;
+    if (!db) {
+      return fail(500, { error: 'Database not available' });
+    }
+
+    const formData = await request.formData();
+    const code = formData.get('code')?.toString();
+
+    if (!code) {
+      return fail(400, { error: 'Invite code is required' });
+    }
+
+    await deleteInviteCode(db, code, locals.user.family_id);
+
+    return { success: 'Invite code revoked' };
   }
 };

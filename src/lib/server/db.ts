@@ -162,6 +162,13 @@ export async function useInviteCode(db: D1Database, code: string, userId: string
     .run();
 }
 
+export async function deleteInviteCode(db: D1Database, code: string, familyId: string): Promise<void> {
+  await db
+    .prepare('DELETE FROM invite_codes WHERE code = ? AND family_id = ? AND used_by IS NULL')
+    .bind(code.toUpperCase(), familyId)
+    .run();
+}
+
 export async function getFamilyMembers(db: D1Database, familyId: string): Promise<Pick<User, 'id' | 'name' | 'email' | 'photo_url' | 'photo_data'>[]> {
   const result = await db
     .prepare('SELECT id, name, email, photo_url, photo_data FROM users WHERE family_id = ?')

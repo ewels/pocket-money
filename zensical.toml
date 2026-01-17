@@ -1,0 +1,41 @@
+[project]
+site_name = "Pocket Money"
+site_url = "https://ewels.github.io/pocket-money/"
+site_description = "A family pocket money tracking PWA built with SvelteKit and Cloudflare"
+repo_url = "https://github.com/ewels/pocket-money"
+repo_name = "ewels/pocket-money"
+
+nav = [
+  { "Home" = "index.md" },
+  { "Getting Started" = [
+    { "Installation" = "getting-started/installation.md" },
+    { "Deployment" = "getting-started/deployment.md" }
+  ]},
+  { "User Guide" = [
+    { "Overview" = "guide/index.md" },
+    { "Managing Children" = "guide/children.md" },
+    { "Saving Targets" = "guide/saving-targets.md" },
+    { "Recurring Payments" = "guide/recurring-payments.md" },
+    { "Family & Invites" = "guide/family.md" },
+    { "Settings" = "guide/settings.md" }
+  ]},
+  { "Reference" = [
+    { "Architecture" = "reference/architecture.md" },
+    { "Database Schema" = "reference/database.md" }
+  ]},
+  { "GitHub" = "https://github.com/ewels/pocket-money" }
+]
+
+[theme]
+palette = [
+  { scheme = "default", primary = "blue", accent = "blue", toggle = { icon = "material/brightness-7", name = "Switch to dark mode" } },
+  { scheme = "slate", primary = "blue", accent = "blue", toggle = { icon = "material/brightness-4", name = "Switch to light mode" } }
+]
+features = [
+  "navigation.instant",
+  "navigation.tracking",
+  "navigation.sections",
+  "navigation.expand",
+  "toc.follow",
+  "content.code.copy"
+]
