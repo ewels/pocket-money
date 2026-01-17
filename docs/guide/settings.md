@@ -2,6 +2,8 @@
 
 Configure app-wide settings for your family.
 
+![Settings Page](../assets/screenshots/settings.png)
+
 ## Currency
 
 Change the display currency for all amounts in the app.

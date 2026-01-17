@@ -7,6 +7,8 @@
 3. Choose a color for their profile
 4. Click **Add**
 
+![Add Child Modal](../assets/screenshots/add-child-modal.png)
+
 ## Child Profile
 
 Click on a child's card to view their profile:
@@ -17,13 +19,17 @@ Click on a child's card to view their profile:
 - **Recent Transactions** - List of deposits and withdrawals
 - **Recurring Payments** - Active automatic payments
 
+![Child Profile](../assets/screenshots/child-profile-with-transaction.png)
+
 ## Adding Money
 
 1. Open a child's profile
-2. Click **Add**
+2. Click **Add Money**
 3. Enter the amount
 4. Optionally add a description (e.g., "Birthday money from Grandma")
 5. Click confirm
+
+![Add Money Modal](../assets/screenshots/add-money-modal.png)
 
 ## Withdrawing Money
 

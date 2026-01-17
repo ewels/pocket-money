@@ -15,9 +15,13 @@ Set up automatic allowance deposits on any schedule.
 5. Add an optional description (e.g., "Weekly allowance")
 6. Click **Add**
 
+![Add Recurring Payment](../assets/screenshots/add-recurring-modal.png)
+
 The first payment will be deposited at the next scheduled interval.
 
 ## Managing Recurring Payments
+
+![Recurring Payments](../assets/screenshots/child-settings-configured.png)
 
 Each recurring payment can be:
 

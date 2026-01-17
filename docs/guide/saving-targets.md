@@ -2,6 +2,8 @@
 
 Saving targets help children work toward financial goals with visual progress tracking.
 
+![Saving Targets](../assets/screenshots/child-settings-configured.png)
+
 ## Creating a Target
 
 1. Go to a child's settings (gear icon on their profile)

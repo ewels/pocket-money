@@ -11,6 +11,8 @@ Welcome to Pocket Money! This guide covers everything you need to know to use th
 3. Optionally enter an invite code if joining an existing family
 4. Click **Create account**
 
+![Registration Form](../assets/screenshots/register.png)
+
 **Without invite code**: A new family is created for you automatically.
 
 **With invite code**: You join the existing family and can immediately see their children.

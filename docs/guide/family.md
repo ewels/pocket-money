@@ -24,6 +24,8 @@ To invite someone (spouse, co-parent, grandparent, etc.):
 3. Share the 8-character code with the person you're inviting
 4. They enter the code when registering a new account
 
+![Invite Code](../assets/screenshots/settings-invite-code.png)
+
 ### Invite Code Details
 
 - **Format**: 8 uppercase letters and numbers (e.g., `ABC12XY3`)
