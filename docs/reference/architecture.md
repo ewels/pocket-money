@@ -6,23 +6,20 @@ Technical overview of Pocket Money's architecture.
 
 Pocket Money is a SvelteKit application deployed on Cloudflare Pages with a D1 (SQLite) database.
 
-```
-┌─────────────────────────────────────────────────────┐
-│                  Cloudflare Pages                    │
-│  ┌──────────────────────────────────────────────┐   │
-│  │              SvelteKit App                    │   │
-│  │  ┌─────────┐  ┌─────────┐  ┌─────────────┐  │   │
-│  │  │ Routes  │  │  API    │  │   Server    │  │   │
-│  │  │ (Pages) │  │ Routes  │  │   Hooks     │  │   │
-│  │  └─────────┘  └─────────┘  └─────────────┘  │   │
-│  └──────────────────────────────────────────────┘   │
-│                        │                             │
-│                        ▼                             │
-│  ┌──────────────────────────────────────────────┐   │
-│  │              Cloudflare D1                    │   │
-│  │              (SQLite)                         │   │
-│  └──────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph CF["Cloudflare Pages"]
+        subgraph App["SvelteKit App"]
+            Routes["Routes (Pages)"]
+            API["API Routes"]
+            Hooks["Server Hooks"]
+        end
+        D1[("Cloudflare D1\n(SQLite)")]
+    end
+
+    Routes --> D1
+    API --> D1
+    Hooks --> D1
 ```
 
 ## Directory Structure

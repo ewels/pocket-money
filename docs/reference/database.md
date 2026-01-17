@@ -4,18 +4,19 @@ Pocket Money uses Cloudflare D1, a SQLite-based database.
 
 ## Entity Relationships
 
-```
-families
-    │
-    ├── users (many)
-    ├── children (many)
-    ├── settings (one)
-    └── invite_codes (many)
+```mermaid
+erDiagram
+    families ||--o{ users : has
+    families ||--o{ children : has
+    families ||--|| settings : has
+    families ||--o{ invite_codes : has
 
-children
-    ├── saving_targets (many)
-    ├── recurring_rules (many)
-    └── transactions (many)
+    children ||--o{ saving_targets : has
+    children ||--o{ recurring_rules : has
+    children ||--o{ transactions : has
+
+    users ||--o{ transactions : creates
+    users ||--o{ sessions : has
 ```
 
 ## Tables

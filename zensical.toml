@@ -26,6 +26,11 @@ nav = [
   { "GitHub" = "https://github.com/ewels/pocket-money" }
 ]
 
+[project.markdown_extensions.pymdownx.superfences]
+custom_fences = [
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" }
+]
+
 [theme]
 favicon = "assets/favicon.png"
 logo = "assets/icon.svg"
