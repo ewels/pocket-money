@@ -77,6 +77,27 @@ export const load: PageServerLoad = async ({ params, locals, platform, url }) =>
 			date: rule.next_run_at
 		}));
 
+	// Calculate monthly income from active recurring rules (normalized to 30-day equivalent)
+	const monthlyIncome = activeRules.reduce((total, rule) => {
+		let multiplier = 1;
+		switch (rule.interval_type) {
+			case 'daily':
+				multiplier = 30;
+				break;
+			case 'weekly':
+				multiplier = 30 / 7;
+				break;
+			case 'monthly':
+				multiplier = 1;
+				break;
+			case 'days':
+			default:
+				multiplier = 30 / rule.interval_days;
+				break;
+		}
+		return total + rule.amount * multiplier;
+	}, 0);
+
 	return {
 		child,
 		balance,
@@ -88,7 +109,8 @@ export const load: PageServerLoad = async ({ params, locals, platform, url }) =>
 		deductions,
 		totalDeductions,
 		nextPaymentAmount,
-		upcomingPayments
+		upcomingPayments,
+		monthlyIncome
 	};
 };
 

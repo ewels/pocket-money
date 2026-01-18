@@ -15,11 +15,45 @@
 		target,
 		currentBalance,
 		color,
-		currency
-	}: { target: Target; currentBalance: number; color: string; currency: string } = $props();
+		currency,
+		monthlyIncome = 0
+	}: {
+		target: Target;
+		currentBalance: number;
+		color: string;
+		currency: string;
+		monthlyIncome?: number;
+	} = $props();
 
 	const progress = $derived(calculateProgress(currentBalance, target.target_amount));
 	const remaining = $derived(Math.max(0, target.target_amount - currentBalance));
+
+	function calculateTimeToTarget(
+		current: number,
+		targetAmount: number,
+		income: number
+	): string | null {
+		if (current >= targetAmount) return null;
+		if (income <= 0) return null;
+
+		const remainingAmount = targetAmount - current;
+		const months = remainingAmount / income;
+
+		if (months < 1) {
+			const weeks = Math.ceil(months * 4);
+			return `~${weeks} week${weeks !== 1 ? 's' : ''}`;
+		}
+		if (months < 12) {
+			const roundedMonths = Math.ceil(months);
+			return `~${roundedMonths} month${roundedMonths !== 1 ? 's' : ''}`;
+		}
+		const years = months / 12;
+		return `~${years.toFixed(1)} years`;
+	}
+
+	const timeToTarget = $derived(
+		calculateTimeToTarget(currentBalance, target.target_amount, monthlyIncome)
+	);
 </script>
 
 <div class="flex gap-4">
@@ -84,5 +118,8 @@
 				style="width: {progress}%; background-color: {color}"
 			></div>
 		</div>
+		{#if timeToTarget}
+			<p class="text-xs text-gray-500">{timeToTarget} to reach goal</p>
+		{/if}
 	</div>
 </div>

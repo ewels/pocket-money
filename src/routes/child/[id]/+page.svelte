@@ -263,6 +263,7 @@
 						currentBalance={availableBalance}
 						color={colorHex}
 						currency={data.settings?.currency ?? 'EUR'}
+						monthlyIncome={data.monthlyIncome}
 					/>
 				{/each}
 			</div>
