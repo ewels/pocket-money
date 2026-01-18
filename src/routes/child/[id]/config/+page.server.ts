@@ -292,7 +292,6 @@ export const actions: Actions = {
 			description,
 			interval_days: intervalDays,
 			next_run_at: nextRun,
-			skip_next: 0,
 			active: 1
 		});
 
@@ -315,24 +314,6 @@ export const actions: Actions = {
 
 		await updateRecurringRule(db, ruleId, { active });
 		return { success: active ? 'Rule resumed' : 'Rule paused' };
-	},
-
-	toggleSkip: async ({ request, platform }) => {
-		const db = platform?.env?.DB;
-		if (!db) {
-			return fail(500, { error: 'Database not available' });
-		}
-
-		const formData = await request.formData();
-		const ruleId = formData.get('ruleId')?.toString();
-		const skip = formData.get('skip') === '1' ? 1 : 0;
-
-		if (!ruleId) {
-			return fail(400, { error: 'Rule ID is required' });
-		}
-
-		await updateRecurringRule(db, ruleId, { skip_next: skip });
-		return { success: skip ? 'Next payment will be skipped' : 'Skip cancelled' };
 	},
 
 	deleteRule: async ({ request, platform }) => {

@@ -13,6 +13,7 @@
 	let showAddMoney = $state(false);
 	let showWithdraw = $state(false);
 	let showAddTarget = $state(false);
+	let showDeductions = $state(false);
 	let loading = $state(false);
 
 	const color = data.child.color as ChildColor;
@@ -123,7 +124,66 @@
 			</svg>
 			Withdraw
 		</button>
+		<button
+			type="button"
+			class="btn-warning flex-1 relative"
+			onclick={() => (showDeductions = true)}
+		>
+			<svg
+				class="mr-2 h-5 w-5"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke-width="1.5"
+				stroke="currentColor"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+				/>
+			</svg>
+			Deduct
+			{#if data.totalDeductions > 0}
+				<span
+					class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white"
+				>
+					{data.deductions.length}
+				</span>
+			{/if}
+		</button>
 	</div>
+
+	<!-- Pending Deductions Card -->
+	{#if data.totalDeductions > 0}
+		<div class="card p-4 border-orange-200 bg-orange-50">
+			<div class="flex items-center justify-between">
+				<div>
+					<h3 class="text-sm font-medium text-orange-800">Pending Deductions</h3>
+					<p class="text-lg font-bold text-orange-600">
+						{formatMoney(data.totalDeductions, data.settings?.currency ?? 'EUR')}
+					</p>
+					<p class="text-xs text-orange-600">
+						Will reduce the next {data.deductions.length === 1 ? 'payment' : 'payments'}
+					</p>
+				</div>
+				<button
+					type="button"
+					class="text-orange-600 hover:text-orange-800"
+					onclick={() => (showDeductions = true)}
+				>
+					<svg
+						class="h-5 w-5"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke-width="1.5"
+						stroke="currentColor"
+					>
+						<path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+					</svg>
+				</button>
+			</div>
+		</div>
+	{/if}
 
 	<!-- Saving Targets -->
 	<div class="card p-6">
@@ -217,8 +277,6 @@
 								Every {rule.interval_days} day{rule.interval_days !== 1 ? 's' : ''}
 								{#if !rule.active}
 									<span class="text-orange-500">(paused)</span>
-								{:else if rule.skip_next}
-									<span class="text-orange-500">(skipping next)</span>
 								{/if}
 							</p>
 						</div>
@@ -370,3 +428,129 @@
 
 <!-- Add Target Modal -->
 <AddTargetModal bind:open={showAddTarget} />
+
+<!-- Deductions Modal -->
+{#if showDeductions}
+	<div class="fixed inset-0 z-50 overflow-y-auto">
+		<div class="flex min-h-full items-center justify-center p-4">
+			<button
+				type="button"
+				class="fixed inset-0 bg-black/50"
+				onclick={() => (showDeductions = false)}
+				aria-label="Close"
+			></button>
+			<div
+				class="relative w-full max-w-md rounded-xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto"
+			>
+				<h2 class="text-lg font-semibold text-gray-900">Manage Deductions</h2>
+				<p class="mt-1 text-sm text-gray-500">
+					Deductions reduce or skip upcoming recurring payments.
+				</p>
+
+				<!-- Existing Deductions -->
+				{#if data.deductions.length > 0}
+					<div class="mt-4">
+						<h3 class="text-sm font-medium text-gray-700 mb-2">Pending Deductions</h3>
+						<div class="space-y-2">
+							{#each data.deductions as deduction (deduction.id)}
+								<div class="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+									<div>
+										<p class="font-medium text-gray-900">
+											{formatMoney(deduction.amount, data.settings?.currency ?? 'EUR')}
+										</p>
+										{#if deduction.description}
+											<p class="text-sm text-gray-500">{deduction.description}</p>
+										{/if}
+									</div>
+									<form method="POST" action="?/deleteDeduction" use:enhance>
+										<input type="hidden" name="deductionId" value={deduction.id} />
+										<button type="submit" class="p-2 text-red-400 hover:text-red-600">
+											<svg
+												class="h-5 w-5"
+												fill="none"
+												viewBox="0 0 24 24"
+												stroke-width="1.5"
+												stroke="currentColor"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+												/>
+											</svg>
+										</button>
+									</form>
+								</div>
+							{/each}
+						</div>
+						<p class="mt-2 text-sm text-gray-500">
+							Total: {formatMoney(data.totalDeductions, data.settings?.currency ?? 'EUR')}
+						</p>
+					</div>
+				{/if}
+
+				<!-- Add New Deduction -->
+				<div class="mt-6 pt-4 border-t border-gray-200">
+					<h3 class="text-sm font-medium text-gray-700 mb-3">Add New Deduction</h3>
+					<form
+						method="POST"
+						action="?/addDeduction"
+						use:enhance={() => {
+							loading = true;
+							return async ({ result, update }) => {
+								loading = false;
+								if (result.type === 'success') {
+									await update();
+								} else {
+									await update();
+								}
+							};
+						}}
+						class="space-y-4"
+					>
+						<div>
+							<label for="deductionAmount" class="label">Amount</label>
+							<input
+								id="deductionAmount"
+								name="amount"
+								type="number"
+								step="0.01"
+								min="0.01"
+								required
+								class="input"
+								placeholder="0.00"
+								value={data.nextPaymentAmount > 0 ? data.nextPaymentAmount : ''}
+							/>
+							{#if data.nextPaymentAmount > 0}
+								<p class="mt-1 text-xs text-gray-500">
+									Pre-filled with next payment amount ({formatMoney(
+										data.nextPaymentAmount,
+										data.settings?.currency ?? 'EUR'
+									)})
+								</p>
+							{/if}
+						</div>
+						<div>
+							<label for="deductionDescription" class="label">Reason (optional)</label>
+							<input
+								id="deductionDescription"
+								name="description"
+								type="text"
+								class="input"
+								placeholder="e.g., Didn't do chores"
+							/>
+						</div>
+						<div class="flex justify-end gap-3 pt-2">
+							<button type="button" class="btn-secondary" onclick={() => (showDeductions = false)}
+								>Close</button
+							>
+							<button type="submit" class="btn-warning" disabled={loading}>
+								{loading ? 'Adding...' : 'Add Deduction'}
+							</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+{/if}

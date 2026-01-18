@@ -27,6 +27,9 @@
 	.btn-danger {
 		@apply btn bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
 	}
+	.btn-warning {
+		@apply btn bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-500;
+	}
 	.input {
 		@apply block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500;
 	}

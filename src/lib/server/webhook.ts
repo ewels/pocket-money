@@ -4,6 +4,7 @@ import { getSettings } from './db';
 export type WebhookEventType =
 	| 'transaction.created'
 	| 'recurring_payment.processed'
+	| 'recurring_payment.skipped'
 	| 'balance.updated'
 	| 'child.created'
 	| 'child.updated'

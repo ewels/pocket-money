@@ -9,7 +9,12 @@ import {
 	getBalanceHistory,
 	createTransaction,
 	createSavingTarget,
-	generateId
+	generateId,
+	getDeductions,
+	getTotalDeductions,
+	createDeduction,
+	deleteDeduction,
+	getDeductionById
 } from '$lib/server/db';
 import { sendWebhook } from '$lib/server/webhook';
 
@@ -38,13 +43,28 @@ export const load: PageServerLoad = async ({ params, locals, platform, url }) =>
 	const historyDays = historyDaysParam ? parseInt(historyDaysParam, 10) : 30;
 	const validHistoryDays = [0, 7, 30, 180].includes(historyDays) ? historyDays : 30;
 
-	const [balance, targets, recurringRules, transactions, balanceHistory] = await Promise.all([
+	const [
+		balance,
+		targets,
+		recurringRules,
+		transactions,
+		balanceHistory,
+		deductions,
+		totalDeductions
+	] = await Promise.all([
 		getChildBalance(db, child.id),
 		getSavingTargets(db, child.id),
 		getRecurringRules(db, child.id),
 		getTransactions(db, child.id),
-		getBalanceHistory(db, child.id, validHistoryDays)
+		getBalanceHistory(db, child.id, validHistoryDays),
+		getDeductions(db, child.id),
+		getTotalDeductions(db, child.id)
 	]);
+
+	// Calculate next payment amount from active recurring rules
+	const activeRules = recurringRules.filter((r) => r.active);
+	const nextPaymentAmount =
+		activeRules.length > 0 ? Math.min(...activeRules.map((r) => r.amount)) : 0;
 
 	return {
 		child,
@@ -53,7 +73,10 @@ export const load: PageServerLoad = async ({ params, locals, platform, url }) =>
 		recurringRules,
 		transactions,
 		balanceHistory,
-		historyDays: validHistoryDays
+		historyDays: validHistoryDays,
+		deductions,
+		totalDeductions,
+		nextPaymentAmount
 	};
 };
 
@@ -222,5 +245,79 @@ export const actions: Actions = {
 		});
 
 		return { success: 'Target added' };
+	},
+
+	addDeduction: async ({ params, request, locals, platform }) => {
+		if (!locals.user?.family_id) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
+		const db = platform?.env?.DB;
+		if (!db) {
+			return fail(500, { error: 'Database not available' });
+		}
+
+		// Verify child ownership
+		const child = await getChild(db, params.id);
+		if (!child || child.family_id !== locals.user.family_id) {
+			return fail(403, { error: 'Access denied' });
+		}
+
+		const formData = await request.formData();
+		const amountStr = formData.get('amount')?.toString();
+		const description = formData.get('description')?.toString().trim() || null;
+
+		if (!amountStr) {
+			return fail(400, { error: 'Amount is required' });
+		}
+
+		const amount = parseFloat(amountStr);
+		if (isNaN(amount) || amount <= 0) {
+			return fail(400, { error: 'Invalid amount' });
+		}
+
+		await createDeduction(db, {
+			id: generateId(),
+			child_id: params.id,
+			amount,
+			description,
+			created_by: locals.user.id
+		});
+
+		return { success: true };
+	},
+
+	deleteDeduction: async ({ params, request, locals, platform }) => {
+		if (!locals.user?.family_id) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
+		const db = platform?.env?.DB;
+		if (!db) {
+			return fail(500, { error: 'Database not available' });
+		}
+
+		// Verify child ownership
+		const child = await getChild(db, params.id);
+		if (!child || child.family_id !== locals.user.family_id) {
+			return fail(403, { error: 'Access denied' });
+		}
+
+		const formData = await request.formData();
+		const deductionId = formData.get('deductionId')?.toString();
+
+		if (!deductionId) {
+			return fail(400, { error: 'Deduction ID is required' });
+		}
+
+		// Verify deduction belongs to this child
+		const deduction = await getDeductionById(db, deductionId);
+		if (!deduction || deduction.child_id !== params.id) {
+			return fail(404, { error: 'Deduction not found' });
+		}
+
+		await deleteDeduction(db, deductionId);
+
+		return { success: true };
 	}
 };

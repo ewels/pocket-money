@@ -72,8 +72,16 @@ export type RecurringRule = {
 	description: string | null;
 	interval_days: number;
 	next_run_at: number;
-	skip_next: number;
 	active: number;
+	created_at: number;
+};
+
+export type Deduction = {
+	id: string;
+	child_id: string;
+	amount: number;
+	description: string | null;
+	created_by: string | null;
 	created_at: number;
 };
 
@@ -475,7 +483,7 @@ export async function createRecurringRule(
 ): Promise<void> {
 	await db
 		.prepare(
-			'INSERT INTO recurring_rules (id, child_id, amount, description, interval_days, next_run_at, skip_next, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+			'INSERT INTO recurring_rules (id, child_id, amount, description, interval_days, next_run_at, active) VALUES (?, ?, ?, ?, ?, ?, ?)'
 		)
 		.bind(
 			rule.id,
@@ -484,7 +492,6 @@ export async function createRecurringRule(
 			rule.description,
 			rule.interval_days,
 			rule.next_run_at,
-			rule.skip_next,
 			rule.active
 		)
 		.run();
@@ -502,14 +509,13 @@ export async function updateRecurringRule(
 	if (!rule) return;
 	await db
 		.prepare(
-			'UPDATE recurring_rules SET amount = ?, description = ?, interval_days = ?, next_run_at = ?, skip_next = ?, active = ? WHERE id = ?'
+			'UPDATE recurring_rules SET amount = ?, description = ?, interval_days = ?, next_run_at = ?, active = ? WHERE id = ?'
 		)
 		.bind(
 			updates.amount ?? rule.amount,
 			updates.description !== undefined ? updates.description : rule.description,
 			updates.interval_days ?? rule.interval_days,
 			updates.next_run_at ?? rule.next_run_at,
-			updates.skip_next ?? rule.skip_next,
 			updates.active ?? rule.active,
 			id
 		)
@@ -653,4 +659,87 @@ export async function getBalanceHistory(
 	}
 
 	return history;
+}
+
+// Deduction functions
+export async function getDeductions(db: D1Database, childId: string): Promise<Deduction[]> {
+	const result = await db
+		.prepare('SELECT * FROM deductions WHERE child_id = ? ORDER BY created_at')
+		.bind(childId)
+		.all<Deduction>();
+	return result.results;
+}
+
+export async function getTotalDeductions(db: D1Database, childId: string): Promise<number> {
+	const result = await db
+		.prepare('SELECT COALESCE(SUM(amount), 0) as total FROM deductions WHERE child_id = ?')
+		.bind(childId)
+		.first<{ total: number }>();
+	return result?.total ?? 0;
+}
+
+export async function createDeduction(
+	db: D1Database,
+	deduction: Omit<Deduction, 'created_at'>
+): Promise<void> {
+	await db
+		.prepare(
+			'INSERT INTO deductions (id, child_id, amount, description, created_by) VALUES (?, ?, ?, ?, ?)'
+		)
+		.bind(
+			deduction.id,
+			deduction.child_id,
+			deduction.amount,
+			deduction.description,
+			deduction.created_by
+		)
+		.run();
+}
+
+export async function deleteDeduction(db: D1Database, id: string): Promise<void> {
+	await db.prepare('DELETE FROM deductions WHERE id = ?').bind(id).run();
+}
+
+export async function getDeductionById(db: D1Database, id: string): Promise<Deduction | null> {
+	return db.prepare('SELECT * FROM deductions WHERE id = ?').bind(id).first<Deduction>();
+}
+
+/**
+ * Consume deductions FIFO for a payment. Returns the amount actually deducted.
+ * If deductions >= paymentAmount, payment is fully skipped.
+ * If deductions < paymentAmount, partial payment occurs.
+ */
+export async function consumeDeductions(
+	db: D1Database,
+	childId: string,
+	paymentAmount: number
+): Promise<{ amountDeducted: number; deductionsConsumed: string[] }> {
+	const deductions = await getDeductions(db, childId);
+	let remaining = paymentAmount;
+	const consumed: string[] = [];
+
+	for (const deduction of deductions) {
+		if (remaining <= 0) break;
+
+		if (deduction.amount <= remaining) {
+			// Fully consume this deduction
+			remaining -= deduction.amount;
+			consumed.push(deduction.id);
+			await deleteDeduction(db, deduction.id);
+		} else {
+			// Partially consume this deduction
+			const partialAmount = remaining;
+			remaining = 0;
+			// Update the deduction with remaining amount
+			await db
+				.prepare('UPDATE deductions SET amount = ? WHERE id = ?')
+				.bind(deduction.amount - partialAmount, deduction.id)
+				.run();
+		}
+	}
+
+	return {
+		amountDeducted: paymentAmount - remaining,
+		deductionsConsumed: consumed
+	};
 }

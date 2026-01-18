@@ -398,8 +398,6 @@
 								Every {rule.interval_days} day{rule.interval_days !== 1 ? 's' : ''}
 								{#if !rule.active}
 									<span class="text-orange-500">(paused)</span>
-								{:else if rule.skip_next}
-									<span class="text-orange-500">(skipping next)</span>
 								{/if}
 							</p>
 						</div>
@@ -443,33 +441,6 @@
 									{/if}
 								</button>
 							</form>
-							{#if rule.active}
-								<form method="POST" action="?/toggleSkip" use:enhance>
-									<input type="hidden" name="ruleId" value={rule.id} />
-									<input type="hidden" name="skip" value={rule.skip_next ? '0' : '1'} />
-									<button
-										type="submit"
-										class="p-2 {rule.skip_next
-											? 'text-orange-500'
-											: 'text-gray-400'} hover:text-gray-600"
-										title={rule.skip_next ? 'Cancel skip' : 'Skip next'}
-									>
-										<svg
-											class="h-5 w-5"
-											fill="none"
-											viewBox="0 0 24 24"
-											stroke-width="1.5"
-											stroke="currentColor"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												d="M3 8.688c0-.864.933-1.405 1.683-.977l7.108 4.062a1.125 1.125 0 010 1.953l-7.108 4.062A1.125 1.125 0 013 16.81V8.688zM12.75 8.688c0-.864.933-1.405 1.683-.977l7.108 4.062a1.125 1.125 0 010 1.953l-7.108 4.062a1.125 1.125 0 01-1.683-.977V8.688z"
-											/>
-										</svg>
-									</button>
-								</form>
-							{/if}
 							<form method="POST" action="?/deleteRule" use:enhance>
 								<input type="hidden" name="ruleId" value={rule.id} />
 								<button type="submit" class="p-2 text-red-400 hover:text-red-600">
