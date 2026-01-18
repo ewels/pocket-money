@@ -26,7 +26,8 @@ export const load: LayoutServerLoad = async ({ locals, platform }) => {
 		settings: {
 			currency: settings.currency,
 			pin_enabled: settings.pin_enabled === 1,
-			pin_timeout_minutes: settings.pin_timeout_minutes
+			pin_timeout_minutes: settings.pin_timeout_minutes,
+			webhook_url: settings.webhook_url
 		},
 		family: family ? { id: family.id, name: family.name } : null
 	};

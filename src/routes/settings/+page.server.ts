@@ -198,5 +198,35 @@ export const actions: Actions = {
 		await deleteInviteCode(db, code, locals.user.family_id);
 
 		return { success: 'Invite code revoked' };
+	},
+
+	updateWebhook: async ({ request, platform, locals }) => {
+		if (!locals.user?.family_id) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
+		const db = platform?.env?.DB;
+		if (!db) {
+			return fail(500, { error: 'Database not available' });
+		}
+
+		const formData = await request.formData();
+		const webhookUrl = formData.get('webhookUrl')?.toString().trim() || null;
+
+		// Validate URL if provided
+		if (webhookUrl) {
+			try {
+				const url = new URL(webhookUrl);
+				if (!['http:', 'https:'].includes(url.protocol)) {
+					return fail(400, { error: 'Webhook URL must use HTTP or HTTPS' });
+				}
+			} catch {
+				return fail(400, { error: 'Invalid webhook URL' });
+			}
+		}
+
+		await updateSettings(db, locals.user.family_id, { webhook_url: webhookUrl });
+
+		return { success: webhookUrl ? 'Webhook URL saved' : 'Webhook disabled' };
 	}
 };

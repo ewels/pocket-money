@@ -14,6 +14,7 @@ import {
 	deleteRecurringRule,
 	generateId
 } from '$lib/server/db';
+import { sendWebhook } from '$lib/server/webhook';
 
 export const load: PageServerLoad = async ({ params, locals, platform }) => {
 	if (!locals.user) {
@@ -44,7 +45,11 @@ export const load: PageServerLoad = async ({ params, locals, platform }) => {
 };
 
 export const actions: Actions = {
-	updateChild: async ({ params, request, platform }) => {
+	updateChild: async ({ params, request, platform, locals }) => {
+		if (!locals.user?.family_id) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
 		const db = platform?.env?.DB;
 
 		if (!db) {
@@ -75,10 +80,21 @@ export const actions: Actions = {
 			color,
 			...(photoData && { photo_data: photoData })
 		});
+
+		await sendWebhook(db, locals.user.family_id, 'child.updated', {
+			child_id: params.id,
+			name,
+			color
+		});
+
 		return { success: 'Child updated successfully' };
 	},
 
-	deleteChild: async ({ params, platform }) => {
+	deleteChild: async ({ params, platform, locals }) => {
+		if (!locals.user?.family_id) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
 		const db = platform?.env?.DB;
 
 		if (!db) {
@@ -91,6 +107,12 @@ export const actions: Actions = {
 		}
 
 		await deleteChild(db, params.id);
+
+		await sendWebhook(db, locals.user.family_id, 'child.deleted', {
+			child_id: params.id,
+			name: child.name
+		});
+
 		throw redirect(303, '/');
 	},
 

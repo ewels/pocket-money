@@ -8,6 +8,7 @@
 	let showPinModal = $state(false);
 	let pinAction = $state<'enable' | 'change' | 'disable'>('enable');
 	let copiedCode = $state(false);
+	let webhookLoading = $state(false);
 
 	function copyInviteCode(code: string) {
 		navigator.clipboard.writeText(code);
@@ -192,6 +193,69 @@
 			</div>
 		{:else}
 			<p class="text-sm text-gray-500">Family information not available.</p>
+		{/if}
+	</div>
+
+	<!-- Webhook Setting -->
+	<div class="card p-6">
+		<h2 class="text-lg font-semibold text-gray-900 mb-4">Webhook</h2>
+		<p class="text-sm text-gray-500 mb-4">
+			Receive notifications when events occur (transactions, balance changes, etc). The webhook URL
+			will receive POST requests with JSON data.
+		</p>
+
+		<form
+			method="POST"
+			action="?/updateWebhook"
+			use:enhance={() => {
+				webhookLoading = true;
+				return async ({ update }) => {
+					webhookLoading = false;
+					await update();
+				};
+			}}
+			class="space-y-4"
+		>
+			<div>
+				<label for="webhookUrl" class="label">Webhook URL</label>
+				<input
+					id="webhookUrl"
+					name="webhookUrl"
+					type="url"
+					class="input"
+					value={data.settings?.webhook_url ?? ''}
+					placeholder="https://example.com/webhook"
+				/>
+				<p class="mt-1 text-sm text-gray-500">Leave empty to disable webhooks.</p>
+			</div>
+
+			<button type="submit" class="btn-primary" disabled={webhookLoading}>
+				{webhookLoading ? 'Saving...' : 'Save Webhook'}
+			</button>
+		</form>
+
+		{#if data.settings?.webhook_url}
+			<div class="mt-4 p-3 bg-gray-50 rounded-lg">
+				<p class="text-sm font-medium text-gray-700 mb-2">Webhook Events</p>
+				<ul class="text-xs text-gray-600 space-y-1">
+					<li>
+						<code class="bg-gray-200 px-1 rounded">transaction.created</code> - New transaction
+					</li>
+					<li>
+						<code class="bg-gray-200 px-1 rounded">recurring_payment.processed</code> - Recurring payment
+						processed
+					</li>
+					<li>
+						<code class="bg-gray-200 px-1 rounded">child.created</code> - Child profile created
+					</li>
+					<li>
+						<code class="bg-gray-200 px-1 rounded">child.updated</code> - Child profile updated
+					</li>
+					<li>
+						<code class="bg-gray-200 px-1 rounded">child.deleted</code> - Child profile deleted
+					</li>
+				</ul>
+			</div>
 		{/if}
 	</div>
 

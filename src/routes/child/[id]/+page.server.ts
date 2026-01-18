@@ -10,6 +10,7 @@ import {
 	createTransaction,
 	generateId
 } from '$lib/server/db';
+import { sendWebhook } from '$lib/server/webhook';
 
 export const load: PageServerLoad = async ({ params, locals, platform }) => {
 	if (!locals.user) {
@@ -51,7 +52,7 @@ export const load: PageServerLoad = async ({ params, locals, platform }) => {
 
 export const actions: Actions = {
 	addMoney: async ({ params, request, locals, platform }) => {
-		if (!locals.user) {
+		if (!locals.user?.family_id) {
 			return fail(401, { error: 'Not authenticated' });
 		}
 
@@ -73,8 +74,11 @@ export const actions: Actions = {
 			return fail(400, { error: 'Invalid amount' });
 		}
 
+		const child = await getChild(db, params.id);
+		const transactionId = generateId();
+
 		await createTransaction(db, {
-			id: generateId(),
+			id: transactionId,
 			child_id: params.id,
 			user_id: locals.user.id,
 			amount,
@@ -83,11 +87,25 @@ export const actions: Actions = {
 			recurring_rule_id: null
 		});
 
+		const newBalance = await getChildBalance(db, params.id);
+
+		await sendWebhook(db, locals.user.family_id, 'transaction.created', {
+			transaction_id: transactionId,
+			child_id: params.id,
+			child_name: child?.name,
+			amount,
+			description,
+			type: 'deposit',
+			new_balance: newBalance,
+			user_id: locals.user.id,
+			user_name: locals.user.name
+		});
+
 		return { success: true };
 	},
 
 	withdraw: async ({ params, request, locals, platform }) => {
-		if (!locals.user) {
+		if (!locals.user?.family_id) {
 			return fail(401, { error: 'Not authenticated' });
 		}
 
@@ -114,14 +132,31 @@ export const actions: Actions = {
 			return fail(400, { error: 'Insufficient balance' });
 		}
 
+		const child = await getChild(db, params.id);
+		const transactionId = generateId();
+
 		await createTransaction(db, {
-			id: generateId(),
+			id: transactionId,
 			child_id: params.id,
 			user_id: locals.user.id,
 			amount: -amount,
 			description,
 			is_recurring: 0,
 			recurring_rule_id: null
+		});
+
+		const newBalance = await getChildBalance(db, params.id);
+
+		await sendWebhook(db, locals.user.family_id, 'transaction.created', {
+			transaction_id: transactionId,
+			child_id: params.id,
+			child_name: child?.name,
+			amount: -amount,
+			description,
+			type: 'withdrawal',
+			new_balance: newBalance,
+			user_id: locals.user.id,
+			user_name: locals.user.name
 		});
 
 		return { success: true };

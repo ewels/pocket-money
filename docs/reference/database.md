@@ -73,6 +73,7 @@ Per-family application settings.
 | `pin_enabled`         | INTEGER | 0       | PIN protection enabled      |
 | `pin_hash`            | TEXT    | NULL    | bcrypt hash of PIN          |
 | `pin_timeout_minutes` | INTEGER | 1       | Minutes before PIN required |
+| `webhook_url`         | TEXT    | NULL    | URL for event notifications |
 
 ### children
 
@@ -154,6 +155,7 @@ Migrations are stored in `migrations/` and run in order:
 | `0001_initial.sql`    | Core tables           |
 | `0002_photo_data.sql` | Photo storage columns |
 | `0003_families.sql`   | Family system tables  |
+| `0004_webhooks.sql`   | Webhook URL setting   |
 
 ### Running Migrations
 

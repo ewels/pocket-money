@@ -7,6 +7,7 @@ import {
 	createChild,
 	generateId
 } from '$lib/server/db';
+import { sendWebhook } from '$lib/server/webhook';
 
 export const load: PageServerLoad = async ({ locals, platform }) => {
 	if (!locals.user) {
@@ -56,14 +57,21 @@ export const actions: Actions = {
 
 		const children = await getChildren(db, locals.user.family_id);
 		const sortOrder = children.length;
+		const childId = generateId();
 
 		await createChild(db, {
-			id: generateId(),
+			id: childId,
 			name,
 			color,
 			photo_url: null,
 			family_id: locals.user.family_id,
 			sort_order: sortOrder
+		});
+
+		await sendWebhook(db, locals.user.family_id, 'child.created', {
+			child_id: childId,
+			name,
+			color
 		});
 
 		return { success: true };
