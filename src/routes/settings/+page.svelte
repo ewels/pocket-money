@@ -207,7 +207,7 @@
 		<p class="text-sm text-gray-500 mb-4">
 			Receive notifications when events occur (transactions, balance changes, etc). The webhook URL
 			will receive POST requests with JSON data. See the <a
-				href="https://ewels.github.io/pocket-money/guide/webhooks.html"
+				href="https://ewels.github.io/pocket-money/guide/webhooks/"
 				target="_blank"
 				rel="noopener noreferrer"
 				class="text-blue-600 hover:text-blue-800 underline">webhook documentation</a
