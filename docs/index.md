@@ -4,41 +4,43 @@ A family pocket money tracking app built with SvelteKit and hosted on Cloudflare
 
 ![Dashboard Screenshot](assets/screenshots/child-profile-with-transaction.png)
 
+<!-- prettier-ignore-start -->
 <div class="grid cards" markdown>
 
-- :material-rocket-launch: **Quick Start**
+-   :material-rocket-launch: **Quick Start**
 
-  ***
+    ---
 
-  Get up and running in minutes with our installation guide.
+    Get up and running in minutes with our installation guide.
 
-  [:octicons-arrow-right-24: Installation](getting-started/installation.md)
+    [:octicons-arrow-right-24: Installation](getting-started/installation.md)
 
-- :material-account-group: **Family Sharing**
+-   :material-account-group: **Family Sharing**
 
-  ***
+    ---
 
-  Invite family members to share access to your children's accounts.
+    Invite family members to share access to your children's accounts.
 
-  [:octicons-arrow-right-24: Family Guide](guide/family.md)
+    [:octicons-arrow-right-24: Family Guide](guide/family.md)
 
-- :material-piggy-bank: **Saving Targets**
+-   :material-piggy-bank: **Saving Targets**
 
-  ***
+    ---
 
-  Help children save for goals with visual progress tracking.
+    Help children save for goals with visual progress tracking.
 
-  [:octicons-arrow-right-24: Saving Targets](guide/saving-targets.md)
+    [:octicons-arrow-right-24: Saving Targets](guide/saving-targets.md)
 
-- :material-calendar-sync: **Recurring Payments**
+-   :material-calendar-sync: **Recurring Payments**
 
-  ***
+    ---
 
-  Set up automatic allowance payments on any schedule.
+    Set up automatic allowance payments on any schedule.
 
-  [:octicons-arrow-right-24: Recurring Payments](guide/recurring-payments.md)
+    [:octicons-arrow-right-24: Recurring Payments](guide/recurring-payments.md)
 
 </div>
+<!-- prettier-ignore-end -->
 
 ## Features
 
