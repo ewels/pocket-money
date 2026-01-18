@@ -51,9 +51,8 @@ database_name = "pocket-money-db"
 database_id = "local-dev-placeholder"
 ```
 
-::: tip No Cloudflare Account Required
-Local development uses Wrangler's built-in D1 emulator, which stores data in a local SQLite database. You don't need a Cloudflare account until you're ready to deploy.
-:::
+!!! tip "No Cloudflare Account Required"
+    Local development uses Wrangler's built-in D1 emulator, which stores data in a local SQLite database. You don't need a Cloudflare account until you're ready to deploy.
 
 ## Run Migrations
 

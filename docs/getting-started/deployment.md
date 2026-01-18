@@ -69,9 +69,9 @@ Set up the following secrets in your GitHub repository (**Settings** → **Secre
 8. Click **Continue to summary** → **Create Token**
 9. Copy the token immediately (it won't be shown again)
 
-::: warning D1 Permission Required
-The **D1 Edit** permission is required for the deployment workflow to run database migrations automatically. Without this permission, migrations will fail silently and new database schema changes won't be applied.
-:::
+!!! warning "D1 Permission Required"
+    The **D1 Edit** permission is required for the deployment workflow to run database migrations automatically. Without this permission, migrations will fail silently and new database schema changes won't be applied.
+
 
 #### How It Works
 
