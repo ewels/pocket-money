@@ -4,6 +4,7 @@
 	import { formatMoney } from '$lib/currencies';
 	import ColorPicker from '$lib/components/ColorPicker.svelte';
 	import PhotoUpload from '$lib/components/PhotoUpload.svelte';
+	import AddTargetModal from '$lib/components/AddTargetModal.svelte';
 
 	let { data, form } = $props();
 
@@ -19,6 +20,7 @@
 	let dragOverTargetId = $state<string | null>(null);
 	// eslint-disable-next-line svelte/prefer-writable-derived -- need local state for optimistic drag updates
 	let targetOrder = $state<string[]>(data.targets.map((t) => t.id));
+	let reorderMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 
 	// Reset order when data changes
 	$effect(() => {
@@ -44,7 +46,7 @@
 		dragOverTargetId = null;
 	}
 
-	function handleDrop(e: DragEvent, targetId: string) {
+	async function handleDrop(e: DragEvent, targetId: string) {
 		e.preventDefault();
 		if (!draggedTargetId || draggedTargetId === targetId) return;
 
@@ -60,10 +62,20 @@
 			// Submit reorder
 			const formData = new FormData();
 			formData.set('order', JSON.stringify(newOrder));
-			fetch('?/reorderTargets', {
-				method: 'POST',
-				body: formData
-			});
+			try {
+				const response = await fetch('?/reorderTargets', {
+					method: 'POST',
+					body: formData
+				});
+				if (response.ok) {
+					reorderMessage = { type: 'success', text: 'Order saved' };
+				} else {
+					reorderMessage = { type: 'error', text: 'Failed to save order' };
+				}
+			} catch {
+				reorderMessage = { type: 'error', text: 'Failed to save order' };
+			}
+			setTimeout(() => (reorderMessage = null), 2000);
 		}
 
 		draggedTargetId = null;
@@ -95,7 +107,7 @@
 		}
 	}
 
-	function handleTouchEnd() {
+	async function handleTouchEnd() {
 		if (touchTargetId && dragOverTargetId && touchTargetId !== dragOverTargetId) {
 			const fromIndex = targetOrder.indexOf(touchTargetId);
 			const toIndex = targetOrder.indexOf(dragOverTargetId);
@@ -108,10 +120,20 @@
 
 				const formData = new FormData();
 				formData.set('order', JSON.stringify(newOrder));
-				fetch('?/reorderTargets', {
-					method: 'POST',
-					body: formData
-				});
+				try {
+					const response = await fetch('?/reorderTargets', {
+						method: 'POST',
+						body: formData
+					});
+					if (response.ok) {
+						reorderMessage = { type: 'success', text: 'Order saved' };
+					} else {
+						reorderMessage = { type: 'error', text: 'Failed to save order' };
+					}
+				} catch {
+					reorderMessage = { type: 'error', text: 'Failed to save order' };
+				}
+				setTimeout(() => (reorderMessage = null), 2000);
 			}
 		}
 		touchTargetId = null;
@@ -218,14 +240,25 @@
 		{#if orderedTargets.length === 0}
 			<p class="text-gray-500 text-center py-4">No saving targets yet</p>
 		{:else}
-			<p class="text-xs text-gray-400 mb-2">Drag to reorder (first target is filled first)</p>
+			<div class="flex items-center justify-between mb-2">
+				<p class="text-xs text-gray-400">Drag to reorder (first target is filled first)</p>
+				{#if reorderMessage}
+					<p
+						class="text-xs {reorderMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}"
+					>
+						{reorderMessage.text}
+					</p>
+				{/if}
+			</div>
 			<div class="space-y-2">
 				{#each orderedTargets as target (target.id)}
 					<div
 						class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg transition-all {dragOverTargetId ===
 						target.id
 							? 'ring-2 ring-blue-400 bg-blue-50'
-							: ''} {draggedTargetId === target.id ? 'opacity-50' : ''}"
+							: ''} {draggedTargetId === target.id || touchTargetId === target.id
+							? 'opacity-50'
+							: ''}"
 						draggable="true"
 						data-target-id={target.id}
 						ondragstart={(e) => handleDragStart(e, target.id)}
@@ -447,90 +480,7 @@
 </div>
 
 <!-- Add Target Modal -->
-{#if showAddTarget}
-	<div class="fixed inset-0 z-50 overflow-y-auto">
-		<div class="flex min-h-full items-center justify-center p-4">
-			<button
-				type="button"
-				class="fixed inset-0 bg-black/50"
-				onclick={() => (showAddTarget = false)}
-				aria-label="Close"
-			></button>
-			<div
-				class="relative w-full max-w-md rounded-xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto"
-			>
-				<h2 class="text-lg font-semibold text-gray-900">Add Saving Target</h2>
-				<form
-					method="POST"
-					action="?/addTarget"
-					use:enhance={() => {
-						return async ({ result, update }) => {
-							if (result.type === 'success') showAddTarget = false;
-							await update();
-						};
-					}}
-					class="mt-4 space-y-4"
-				>
-					<div>
-						<label for="targetName" class="label">Name</label>
-						<input
-							id="targetName"
-							name="name"
-							type="text"
-							required
-							class="input"
-							placeholder="e.g., New bike"
-						/>
-					</div>
-					<div>
-						<label for="targetAmount" class="label">Target Amount</label>
-						<input
-							id="targetAmount"
-							name="amount"
-							type="number"
-							step="0.01"
-							min="0.01"
-							required
-							class="input"
-							placeholder="0.00"
-						/>
-					</div>
-					<div>
-						<label for="targetDescription" class="label">Description (optional)</label>
-						<input
-							id="targetDescription"
-							name="description"
-							type="text"
-							class="input"
-							placeholder="e.g., Blue mountain bike from the store"
-						/>
-					</div>
-					<div>
-						<label for="targetLink" class="label">Link (optional)</label>
-						<input
-							id="targetLink"
-							name="link"
-							type="url"
-							class="input"
-							placeholder="https://example.com/product"
-						/>
-						<p class="mt-1 text-xs text-gray-500">Link to where the item can be purchased</p>
-					</div>
-					<div>
-						<label class="label">Photo (optional)</label>
-						<PhotoUpload name="photo" />
-					</div>
-					<div class="flex justify-end gap-3 pt-4">
-						<button type="button" class="btn-secondary" onclick={() => (showAddTarget = false)}
-							>Cancel</button
-						>
-						<button type="submit" class="btn-primary">Add Target</button>
-					</div>
-				</form>
-			</div>
-		</div>
-	</div>
-{/if}
+<AddTargetModal bind:open={showAddTarget} />
 
 <!-- Add Recurring Modal -->
 {#if showAddRecurring}

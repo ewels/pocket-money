@@ -8,6 +8,7 @@ import {
 	getTransactions,
 	getBalanceHistory,
 	createTransaction,
+	createSavingTarget,
 	generateId
 } from '$lib/server/db';
 import { sendWebhook } from '$lib/server/webhook';
@@ -160,5 +161,60 @@ export const actions: Actions = {
 		});
 
 		return { success: true };
+	},
+
+	addTarget: async ({ params, request, platform }) => {
+		const db = platform?.env?.DB;
+		if (!db) {
+			return fail(500, { error: 'Database not available' });
+		}
+
+		const formData = await request.formData();
+		const name = formData.get('name')?.toString().trim();
+		const amountStr = formData.get('amount')?.toString();
+		const description = formData.get('description')?.toString().trim() || null;
+		const link = formData.get('link')?.toString().trim() || null;
+		const photoData = formData.get('photo')?.toString() || null;
+
+		if (!name || !amountStr) {
+			return fail(400, { error: 'Name and amount are required' });
+		}
+
+		const amount = parseFloat(amountStr);
+		if (isNaN(amount) || amount <= 0) {
+			return fail(400, { error: 'Invalid amount' });
+		}
+
+		// Validate link if provided
+		if (link) {
+			try {
+				const url = new URL(link);
+				if (!['http:', 'https:'].includes(url.protocol)) {
+					return fail(400, { error: 'Link must use HTTP or HTTPS' });
+				}
+			} catch {
+				return fail(400, { error: 'Invalid link URL' });
+			}
+		}
+
+		// Validate photo data if provided
+		if (photoData && !photoData.startsWith('data:image/')) {
+			return fail(400, { error: 'Invalid image data' });
+		}
+
+		const targets = await getSavingTargets(db, params.id);
+
+		await createSavingTarget(db, {
+			id: generateId(),
+			child_id: params.id,
+			name,
+			target_amount: amount,
+			sort_order: targets.length,
+			photo_data: photoData,
+			description,
+			link
+		});
+
+		return { success: 'Target added' };
 	}
 };

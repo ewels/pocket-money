@@ -5,11 +5,13 @@
 	import LineChart from '$lib/components/LineChart.svelte';
 	import SavingTarget from '$lib/components/SavingTarget.svelte';
 	import TransactionItem from '$lib/components/TransactionItem.svelte';
+	import AddTargetModal from '$lib/components/AddTargetModal.svelte';
 
 	let { data } = $props();
 
 	let showAddMoney = $state(false);
 	let showWithdraw = $state(false);
+	let showAddTarget = $state(false);
 	let loading = $state(false);
 
 	const color = data.child.color as ChildColor;
@@ -106,7 +108,14 @@
 
 	<!-- Saving Targets -->
 	<div class="card p-6">
-		<h2 class="text-lg font-semibold text-gray-900 mb-4">Saving Targets</h2>
+		<div class="flex items-center justify-between mb-4">
+			<h2 class="text-lg font-semibold text-gray-900">Saving Targets</h2>
+			{#if data.targets.length > 0}
+				<button type="button" class="btn-primary text-sm" onclick={() => (showAddTarget = true)}>
+					Add Target
+				</button>
+			{/if}
+		</div>
 		{#if data.targets.length > 0}
 			{@const targetsWithAvailableBalance = data.targets.reduce(
 				(acc, target) => {
@@ -133,7 +142,9 @@
 		{:else}
 			<div class="text-center py-6">
 				<p class="text-gray-500 mb-4">No saving targets yet</p>
-				<a href="/child/{data.child.id}/config" class="btn-primary"> Add Saving Target </a>
+				<button type="button" class="btn-primary" onclick={() => (showAddTarget = true)}>
+					Add Saving Target
+				</button>
 			</div>
 		{/if}
 	</div>
@@ -322,3 +333,6 @@
 		</div>
 	</div>
 {/if}
+
+<!-- Add Target Modal -->
+<AddTargetModal bind:open={showAddTarget} />
