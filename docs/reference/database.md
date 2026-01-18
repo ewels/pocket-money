@@ -170,3 +170,65 @@ wrangler d1 execute pocket-money-db --remote --file=./migrations/0001_initial.sq
 wrangler d1 execute pocket-money-db --remote --file=./migrations/0002_photo_data.sql
 wrangler d1 execute pocket-money-db --remote --file=./migrations/0003_families.sql
 ```
+
+## Admin Operations
+
+### Resetting a User's Password
+
+If a user forgets their password and cannot use the in-app password change feature, you can reset it directly via Cloudflare D1.
+
+#### Step 1: Generate a bcrypt hash
+
+Passwords are hashed using bcrypt with 12 rounds. Generate a hash for the new password using one of these methods:
+
+**Using Node.js:**
+
+```bash
+node -e "const bcrypt = require('bcryptjs'); bcrypt.hash('newpassword123', 12).then(console.log)"
+```
+
+**Using an online bcrypt generator:**
+
+Use a tool like [bcrypt-generator.com](https://bcrypt-generator.com/) with 12 rounds.
+
+!!! warning
+    When using online tools, ensure you trust the site and consider that you're entering a password that will be used.
+
+#### Step 2: Find the user's ID
+
+Using the Cloudflare dashboard or wrangler CLI:
+
+```bash
+wrangler d1 execute pocket-money-db --remote --command "SELECT id, email, name FROM users WHERE email = 'user@example.com'"
+```
+
+#### Step 3: Update the password
+
+Replace `USER_ID` with the user's ID and `BCRYPT_HASH` with the generated hash:
+
+```bash
+wrangler d1 execute pocket-money-db --remote --command "UPDATE users SET password_hash = '\$2a\$12\$...' WHERE id = 'USER_ID'"
+```
+
+!!! note
+    The `$` characters in bcrypt hashes need to be escaped as `\$` when using the command line.
+
+Alternatively, you can run the update directly from the [Cloudflare D1 console](https://dash.cloudflare.com/) in your browser, where escaping is not needed.
+
+### Changing a User's Email
+
+```bash
+wrangler d1 execute pocket-money-db --remote --command "UPDATE users SET email = 'newemail@example.com' WHERE id = 'USER_ID'"
+```
+
+### Listing All Users
+
+```bash
+wrangler d1 execute pocket-money-db --remote --command "SELECT id, email, name, family_id FROM users"
+```
+
+### Listing All Families
+
+```bash
+wrangler d1 execute pocket-money-db --remote --command "SELECT f.id, f.name, COUNT(u.id) as member_count FROM families f LEFT JOIN users u ON u.family_id = f.id GROUP BY f.id"
+```
