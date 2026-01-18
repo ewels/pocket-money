@@ -65,9 +65,13 @@
 			try {
 				const response = await fetch('?/reorderTargets', {
 					method: 'POST',
-					body: formData
+					body: formData,
+					headers: {
+						'x-sveltekit-action': 'true'
+					}
 				});
-				if (response.ok) {
+				const result = (await response.json()) as { type: string };
+				if (result.type === 'success') {
 					reorderMessage = { type: 'success', text: 'Order saved' };
 				} else {
 					reorderMessage = { type: 'error', text: 'Failed to save order' };
@@ -123,9 +127,13 @@
 				try {
 					const response = await fetch('?/reorderTargets', {
 						method: 'POST',
-						body: formData
+						body: formData,
+						headers: {
+							'x-sveltekit-action': 'true'
+						}
 					});
-					if (response.ok) {
+					const result = (await response.json()) as { type: string };
+					if (result.type === 'success') {
 						reorderMessage = { type: 'success', text: 'Order saved' };
 					} else {
 						reorderMessage = { type: 'error', text: 'Failed to save order' };
