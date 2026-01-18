@@ -15,7 +15,7 @@
 
 	let { transaction, currency }: { transaction: Transaction; currency: string } = $props();
 
-	const isPositive = transaction.amount > 0;
+	const isPositive = $derived(transaction.amount > 0);
 </script>
 
 <div class="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0">

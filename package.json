@@ -36,7 +36,6 @@
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
 		"@tailwindcss/forms": "^0.5.9",
 		"@testing-library/svelte": "^5.3.1",
-		"@types/bcryptjs": "^2.4.6",
 		"autoprefixer": "^10.4.20",
 		"eslint": "^9.39.2",
 		"eslint-config-prettier": "^10.1.8",
@@ -59,7 +58,7 @@
 		"wrangler": "^3.99.0"
 	},
 	"dependencies": {
-		"bcryptjs": "^2.4.3",
+		"bcryptjs": "^3.0.3",
 		"chart.js": "^4.4.7"
 	},
 	"type": "module"

@@ -19,8 +19,8 @@
 
 	let { child, currency }: { child: Child; currency: string } = $props();
 
-	const colorClass = `bg-child-${child.color}` as const;
-	const topTarget = child.targets[0];
+	const colorClass = $derived(`bg-child-${child.color}` as const);
+	const topTarget = $derived(child.targets[0]);
 </script>
 
 <a href="/child/{child.id}" class="card hover:shadow-md transition-shadow">

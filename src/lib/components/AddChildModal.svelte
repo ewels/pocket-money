@@ -53,8 +53,8 @@
 						/>
 					</div>
 
-					<div>
-						<label class="label">Color</label>
+					<div role="group" aria-labelledby="add-child-color-label">
+						<span id="add-child-color-label" class="label">Color</span>
 						<input type="hidden" name="color" value={selectedColor} />
 						<ColorPicker bind:selected={selectedColor} />
 					</div>

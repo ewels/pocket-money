@@ -84,8 +84,8 @@
 						/>
 						<p class="mt-1 text-xs text-gray-500">Link to where the item can be purchased</p>
 					</div>
-					<div>
-						<label class="label">Photo (optional)</label>
+					<div role="group" aria-labelledby="add-target-photo-label">
+						<span id="add-target-photo-label" class="label">Photo (optional)</span>
 						<PhotoUpload name="photo" />
 					</div>
 					<div class="flex justify-end gap-3 pt-4">

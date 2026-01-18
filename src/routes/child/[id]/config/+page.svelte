@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
-	import { getInitials, colorHexMap, type ChildColor } from '$lib/utils';
+	import { getInitials, colorHexMap, formatInterval, type ChildColor } from '$lib/utils';
 	import { formatMoney } from '$lib/currencies';
 	import ColorPicker from '$lib/components/ColorPicker.svelte';
 	import PhotoUpload from '$lib/components/PhotoUpload.svelte';
@@ -24,39 +24,15 @@
 
 	const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-	function formatIntervalDisplay(rule: (typeof data.recurringRules)[0]): string {
-		switch (rule.interval_type) {
-			case 'daily':
-				return 'Daily';
-			case 'weekly':
-				return `Weekly on ${dayNames[rule.day_of_week ?? 1]}`;
-			case 'monthly': {
-				const day = rule.day_of_month ?? 1;
-				const suffix =
-					day === 1 || day === 21 || day === 31
-						? 'st'
-						: day === 2 || day === 22
-							? 'nd'
-							: day === 3 || day === 23
-								? 'rd'
-								: 'th';
-				return `Monthly on the ${day}${suffix}`;
-			}
-			case 'days':
-			default:
-				return `Every ${rule.interval_days} day${rule.interval_days !== 1 ? 's' : ''}`;
-		}
-	}
-
 	// Drag and drop state
 	let draggedTargetId = $state<string | null>(null);
 	let dragOverTargetId = $state<string | null>(null);
-	// eslint-disable-next-line svelte/prefer-writable-derived -- need local state for optimistic drag updates
 	let targetOrder = $state<string[]>(data.targets.map((t) => t.id));
 	let reorderMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 
-	// Reset order when data changes
+	// Reset state when data changes
 	$effect(() => {
+		selectedColor = data.child.color;
 		targetOrder = data.targets.map((t) => t.id);
 	});
 
@@ -192,7 +168,11 @@
 <div class="space-y-6">
 	<!-- Header -->
 	<div class="flex items-center gap-4">
-		<a href="/child/{data.child.id}" class="text-gray-500 hover:text-gray-700">
+		<a
+			href="/child/{data.child.id}"
+			class="text-gray-500 hover:text-gray-700"
+			aria-label="Back to child profile"
+		>
 			<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
 				<path
 					stroke-linecap="round"
@@ -274,8 +254,8 @@
 				<input id="name" name="name" type="text" required class="input" value={data.child.name} />
 			</div>
 
-			<div>
-				<label class="label">Color</label>
+			<div role="group" aria-labelledby="color-label">
+				<span id="color-label" class="label">Color</span>
 				<input type="hidden" name="color" value={selectedColor} />
 				<ColorPicker bind:selected={selectedColor} />
 			</div>
@@ -310,9 +290,10 @@
 					</p>
 				{/if}
 			</div>
-			<div class="space-y-2">
+			<div class="space-y-2" role="list">
 				{#each orderedTargets as target (target.id)}
 					<div
+						role="listitem"
 						class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg transition-all {dragOverTargetId ===
 						target.id
 							? 'ring-2 ring-blue-400 bg-blue-50'
@@ -364,6 +345,7 @@
 								type="button"
 								class="p-2 text-gray-400 hover:text-gray-600"
 								onclick={() => (editingTarget = target.id)}
+								aria-label="Edit target"
 							>
 								<svg
 									class="h-5 w-5"
@@ -381,7 +363,11 @@
 							</button>
 							<form method="POST" action="?/deleteTarget" use:enhance>
 								<input type="hidden" name="targetId" value={target.id} />
-								<button type="submit" class="p-2 text-red-400 hover:text-red-600">
+								<button
+									type="submit"
+									class="p-2 text-red-400 hover:text-red-600"
+									aria-label="Delete target"
+								>
 									<svg
 										class="h-5 w-5"
 										fill="none"
@@ -427,7 +413,12 @@
 								{/if}
 							</p>
 							<p class="text-sm text-gray-500">
-								{formatIntervalDisplay(rule)}
+								{formatInterval(
+									rule.interval_type,
+									rule.interval_days,
+									rule.day_of_week,
+									rule.day_of_month
+								)}
 								{#if !rule.active}
 									<span class="text-orange-500">(paused)</span>
 								{/if}
@@ -495,7 +486,11 @@
 							</form>
 							<form method="POST" action="?/deleteRule" use:enhance>
 								<input type="hidden" name="ruleId" value={rule.id} />
-								<button type="submit" class="p-2 text-red-400 hover:text-red-600">
+								<button
+									type="submit"
+									class="p-2 text-red-400 hover:text-red-600"
+									aria-label="Delete recurring payment"
+								>
 									<svg
 										class="h-5 w-5"
 										fill="none"
@@ -706,8 +701,8 @@
 							/>
 							<p class="mt-1 text-xs text-gray-500">Link to where the item can be purchased</p>
 						</div>
-						<div>
-							<label class="label">Photo (optional)</label>
+						<div role="group" aria-labelledby="edit-photo-label">
+							<span id="edit-photo-label" class="label">Photo (optional)</span>
 							{#if target.photo_data}
 								<div class="mb-2">
 									<img

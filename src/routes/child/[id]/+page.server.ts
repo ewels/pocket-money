@@ -125,6 +125,12 @@ export const actions: Actions = {
 			return fail(500, { error: 'Database not available' });
 		}
 
+		// Verify child ownership
+		const child = await getChild(db, params.id);
+		if (!child || child.family_id !== locals.user.family_id) {
+			return fail(403, { error: 'Access denied' });
+		}
+
 		const formData = await request.formData();
 		const amountStr = formData.get('amount')?.toString();
 		const description = formData.get('description')?.toString().trim() || null;
@@ -138,7 +144,6 @@ export const actions: Actions = {
 			return fail(400, { error: 'Invalid amount' });
 		}
 
-		const child = await getChild(db, params.id);
 		const transactionId = generateId();
 
 		await createTransaction(db, {
@@ -178,6 +183,12 @@ export const actions: Actions = {
 			return fail(500, { error: 'Database not available' });
 		}
 
+		// Verify child ownership
+		const child = await getChild(db, params.id);
+		if (!child || child.family_id !== locals.user.family_id) {
+			return fail(403, { error: 'Access denied' });
+		}
+
 		const formData = await request.formData();
 		const amountStr = formData.get('amount')?.toString();
 		const description = formData.get('description')?.toString().trim() || null;
@@ -196,7 +207,6 @@ export const actions: Actions = {
 			return fail(400, { error: 'Insufficient balance' });
 		}
 
-		const child = await getChild(db, params.id);
 		const transactionId = generateId();
 
 		await createTransaction(db, {
@@ -226,10 +236,20 @@ export const actions: Actions = {
 		return { success: true };
 	},
 
-	addTarget: async ({ params, request, platform }) => {
+	addTarget: async ({ params, request, locals, platform }) => {
+		if (!locals.user?.family_id) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
 		const db = platform?.env?.DB;
 		if (!db) {
 			return fail(500, { error: 'Database not available' });
+		}
+
+		// Verify child ownership
+		const child = await getChild(db, params.id);
+		if (!child || child.family_id !== locals.user.family_id) {
+			return fail(403, { error: 'Access denied' });
 		}
 
 		const formData = await request.formData();

@@ -75,3 +75,36 @@ export function calculateProgress(current: number, target: number): number {
 	if (target <= 0) return 0;
 	return Math.min(100, Math.max(0, (current / target) * 100));
 }
+
+const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+export type IntervalType = 'daily' | 'weekly' | 'monthly' | 'days';
+
+export function formatInterval(
+	intervalType: IntervalType,
+	intervalDays: number,
+	dayOfWeek: number | null,
+	dayOfMonth: number | null
+): string {
+	switch (intervalType) {
+		case 'daily':
+			return 'Daily';
+		case 'weekly':
+			return `Weekly on ${dayNames[dayOfWeek ?? 1]}`;
+		case 'monthly': {
+			const day = dayOfMonth ?? 1;
+			const suffix =
+				day === 1 || day === 21 || day === 31
+					? 'st'
+					: day === 2 || day === 22
+						? 'nd'
+						: day === 3 || day === 23
+							? 'rd'
+							: 'th';
+			return `Monthly on the ${day}${suffix}`;
+		}
+		case 'days':
+		default:
+			return `Every ${intervalDays} day${intervalDays !== 1 ? 's' : ''}`;
+	}
+}

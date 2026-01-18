@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
-	import { getInitials, colorHexMap, type ChildColor } from '$lib/utils';
+	import { getInitials, colorHexMap, formatInterval, type ChildColor } from '$lib/utils';
 	import { formatMoney } from '$lib/currencies';
 	import LineChart from '$lib/components/LineChart.svelte';
 	import SavingTarget from '$lib/components/SavingTarget.svelte';
@@ -16,34 +16,8 @@
 	let showDeductions = $state(false);
 	let loading = $state(false);
 
-	const color = data.child.color as ChildColor;
-	const colorHex = colorHexMap[color] ?? colorHexMap.blue;
-
-	const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-	function formatIntervalDisplay(rule: (typeof data.recurringRules)[0]): string {
-		switch (rule.interval_type) {
-			case 'daily':
-				return 'Daily';
-			case 'weekly':
-				return `Weekly on ${dayNames[rule.day_of_week ?? 1]}`;
-			case 'monthly': {
-				const day = rule.day_of_month ?? 1;
-				const suffix =
-					day === 1 || day === 21 || day === 31
-						? 'st'
-						: day === 2 || day === 22
-							? 'nd'
-							: day === 3 || day === 23
-								? 'rd'
-								: 'th';
-				return `Monthly on the ${day}${suffix}`;
-			}
-			case 'days':
-			default:
-				return `Every ${rule.interval_days} day${rule.interval_days !== 1 ? 's' : ''}`;
-		}
-	}
+	const color = $derived(data.child.color as ChildColor);
+	const colorHex = $derived(colorHexMap[color] ?? colorHexMap.blue);
 
 	// Date range options for balance history
 	const historyRanges = [
@@ -68,7 +42,7 @@
 	<!-- Header -->
 	<div class="flex items-center justify-between">
 		<div class="flex items-center gap-4">
-			<a href="/" class="text-gray-500 hover:text-gray-700">
+			<a href="/" class="text-gray-500 hover:text-gray-700" aria-label="Back to dashboard">
 				<svg
 					class="h-6 w-6"
 					fill="none"
@@ -196,6 +170,7 @@
 					type="button"
 					class="text-orange-600 hover:text-orange-800"
 					onclick={() => (showDeductions = true)}
+					aria-label="View deductions"
 				>
 					<svg
 						class="h-5 w-5"
@@ -323,7 +298,12 @@
 								{/if}
 							</p>
 							<p class="text-sm text-gray-500">
-								{formatIntervalDisplay(rule)}
+								{formatInterval(
+									rule.interval_type,
+									rule.interval_days,
+									rule.day_of_week,
+									rule.day_of_month
+								)}
 								{#if !rule.active}
 									<span class="text-orange-500">(paused)</span>
 								{/if}
@@ -513,7 +493,11 @@
 									</div>
 									<form method="POST" action="?/deleteDeduction" use:enhance>
 										<input type="hidden" name="deductionId" value={deduction.id} />
-										<button type="submit" class="p-2 text-red-400 hover:text-red-600">
+										<button
+											type="submit"
+											class="p-2 text-red-400 hover:text-red-600"
+											aria-label="Delete deduction"
+										>
 											<svg
 												class="h-5 w-5"
 												fill="none"

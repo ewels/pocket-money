@@ -93,6 +93,7 @@
 					type="button"
 					class="h-16 rounded-xl bg-gray-800 text-xl font-medium text-gray-400 hover:bg-gray-700 active:bg-gray-600 transition-colors"
 					onclick={handleBackspace}
+					aria-label="Backspace"
 				>
 					<svg
 						class="h-6 w-6 mx-auto"

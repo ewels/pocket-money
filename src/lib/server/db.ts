@@ -1,4 +1,5 @@
 import type { D1Database } from '@cloudflare/workers-types';
+import { formatInterval as formatIntervalUtil, type IntervalType } from '$lib/utils';
 
 export type User = {
 	id: string;
@@ -65,7 +66,7 @@ export type SavingTarget = {
 	created_at: number;
 };
 
-export type IntervalType = 'daily' | 'weekly' | 'monthly' | 'days';
+export type { IntervalType };
 
 export type RecurringRule = {
 	id: string;
@@ -117,9 +118,11 @@ export function generateId(): string {
 const INVITE_CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 
 export function generateInviteCodeString(): string {
+	const randomBytes = new Uint8Array(8);
+	crypto.getRandomValues(randomBytes);
 	let code = '';
 	for (let i = 0; i < 8; i++) {
-		code += INVITE_CODE_CHARS[Math.floor(Math.random() * INVITE_CODE_CHARS.length)];
+		code += INVITE_CODE_CHARS[randomBytes[i] % INVITE_CODE_CHARS.length];
 	}
 	return code;
 }
@@ -841,27 +844,10 @@ export function calculateNextRunFromCurrent(
 }
 
 export function formatInterval(rule: RecurringRule): string {
-	const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-	switch (rule.interval_type) {
-		case 'daily':
-			return 'Daily';
-		case 'weekly':
-			return `Weekly on ${dayNames[rule.day_of_week ?? 1]}`;
-		case 'monthly': {
-			const day = rule.day_of_month ?? 1;
-			const suffix =
-				day === 1 || day === 21 || day === 31
-					? 'st'
-					: day === 2 || day === 22
-						? 'nd'
-						: day === 3 || day === 23
-							? 'rd'
-							: 'th';
-			return `Monthly on the ${day}${suffix}`;
-		}
-		case 'days':
-		default:
-			return `Every ${rule.interval_days} day${rule.interval_days !== 1 ? 's' : ''}`;
-	}
+	return formatIntervalUtil(
+		rule.interval_type,
+		rule.interval_days,
+		rule.day_of_week,
+		rule.day_of_month
+	);
 }

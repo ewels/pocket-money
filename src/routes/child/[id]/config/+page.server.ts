@@ -63,6 +63,11 @@ export const actions: Actions = {
 			return fail(404, { error: 'Child not found' });
 		}
 
+		// Verify family ownership
+		if (child.family_id !== locals.user.family_id) {
+			return fail(403, { error: 'Access denied' });
+		}
+
 		const formData = await request.formData();
 		const name = formData.get('name')?.toString().trim();
 		const color = formData.get('color')?.toString();
@@ -108,6 +113,11 @@ export const actions: Actions = {
 			return fail(404, { error: 'Child not found' });
 		}
 
+		// Verify family ownership
+		if (child.family_id !== locals.user.family_id) {
+			return fail(403, { error: 'Access denied' });
+		}
+
 		await deleteChild(db, params.id);
 
 		await sendWebhook(db, locals.user.family_id, 'child.deleted', {
@@ -118,10 +128,20 @@ export const actions: Actions = {
 		throw redirect(303, '/');
 	},
 
-	addTarget: async ({ params, request, platform }) => {
+	addTarget: async ({ params, request, platform, locals }) => {
+		if (!locals.user?.family_id) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
 		const db = platform?.env?.DB;
 		if (!db) {
 			return fail(500, { error: 'Database not available' });
+		}
+
+		// Verify child ownership
+		const child = await getChild(db, params.id);
+		if (!child || child.family_id !== locals.user.family_id) {
+			return fail(403, { error: 'Access denied' });
 		}
 
 		const formData = await request.formData();
@@ -173,10 +193,20 @@ export const actions: Actions = {
 		return { success: 'Target added' };
 	},
 
-	updateTarget: async ({ request, platform }) => {
+	updateTarget: async ({ params, request, platform, locals }) => {
+		if (!locals.user?.family_id) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
 		const db = platform?.env?.DB;
 		if (!db) {
 			return fail(500, { error: 'Database not available' });
+		}
+
+		// Verify child ownership
+		const child = await getChild(db, params.id);
+		if (!child || child.family_id !== locals.user.family_id) {
+			return fail(403, { error: 'Access denied' });
 		}
 
 		const formData = await request.formData();
@@ -223,10 +253,20 @@ export const actions: Actions = {
 		return { success: 'Target updated' };
 	},
 
-	reorderTargets: async ({ request, platform }) => {
+	reorderTargets: async ({ params, request, platform, locals }) => {
+		if (!locals.user?.family_id) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
 		const db = platform?.env?.DB;
 		if (!db) {
 			return fail(500, { error: 'Database not available' });
+		}
+
+		// Verify child ownership
+		const child = await getChild(db, params.id);
+		if (!child || child.family_id !== locals.user.family_id) {
+			return fail(403, { error: 'Access denied' });
 		}
 
 		const formData = await request.formData();
@@ -247,10 +287,20 @@ export const actions: Actions = {
 		}
 	},
 
-	deleteTarget: async ({ request, platform }) => {
+	deleteTarget: async ({ params, request, platform, locals }) => {
+		if (!locals.user?.family_id) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
 		const db = platform?.env?.DB;
 		if (!db) {
 			return fail(500, { error: 'Database not available' });
+		}
+
+		// Verify child ownership
+		const child = await getChild(db, params.id);
+		if (!child || child.family_id !== locals.user.family_id) {
+			return fail(403, { error: 'Access denied' });
 		}
 
 		const formData = await request.formData();
@@ -264,10 +314,20 @@ export const actions: Actions = {
 		return { success: 'Target deleted' };
 	},
 
-	addRecurring: async ({ params, request, platform }) => {
+	addRecurring: async ({ params, request, platform, locals }) => {
+		if (!locals.user?.family_id) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
 		const db = platform?.env?.DB;
 		if (!db) {
 			return fail(500, { error: 'Database not available' });
+		}
+
+		// Verify child ownership
+		const child = await getChild(db, params.id);
+		if (!child || child.family_id !== locals.user.family_id) {
+			return fail(403, { error: 'Access denied' });
 		}
 
 		const formData = await request.formData();
@@ -314,10 +374,20 @@ export const actions: Actions = {
 		return { success: 'Recurring payment added' };
 	},
 
-	toggleRule: async ({ request, platform }) => {
+	toggleRule: async ({ params, request, platform, locals }) => {
+		if (!locals.user?.family_id) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
 		const db = platform?.env?.DB;
 		if (!db) {
 			return fail(500, { error: 'Database not available' });
+		}
+
+		// Verify child ownership
+		const child = await getChild(db, params.id);
+		if (!child || child.family_id !== locals.user.family_id) {
+			return fail(403, { error: 'Access denied' });
 		}
 
 		const formData = await request.formData();
@@ -332,10 +402,20 @@ export const actions: Actions = {
 		return { success: active ? 'Rule resumed' : 'Rule paused' };
 	},
 
-	editRecurring: async ({ request, platform }) => {
+	editRecurring: async ({ params, request, platform, locals }) => {
+		if (!locals.user?.family_id) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
 		const db = platform?.env?.DB;
 		if (!db) {
 			return fail(500, { error: 'Database not available' });
+		}
+
+		// Verify child ownership
+		const child = await getChild(db, params.id);
+		if (!child || child.family_id !== locals.user.family_id) {
+			return fail(403, { error: 'Access denied' });
 		}
 
 		const formData = await request.formData();
@@ -377,10 +457,20 @@ export const actions: Actions = {
 		return { success: 'Recurring payment updated' };
 	},
 
-	deleteRule: async ({ request, platform }) => {
+	deleteRule: async ({ params, request, platform, locals }) => {
+		if (!locals.user?.family_id) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
 		const db = platform?.env?.DB;
 		if (!db) {
 			return fail(500, { error: 'Database not available' });
+		}
+
+		// Verify child ownership
+		const child = await getChild(db, params.id);
+		if (!child || child.family_id !== locals.user.family_id) {
+			return fail(403, { error: 'Access denied' });
 		}
 
 		const formData = await request.formData();
@@ -418,10 +508,20 @@ export const actions: Actions = {
 		return { success: 'Photo removed' };
 	},
 
-	deleteTargetPhoto: async ({ request, platform }) => {
+	deleteTargetPhoto: async ({ params, request, platform, locals }) => {
+		if (!locals.user?.family_id) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
 		const db = platform?.env?.DB;
 		if (!db) {
 			return fail(500, { error: 'Database not available' });
+		}
+
+		// Verify child ownership
+		const child = await getChild(db, params.id);
+		if (!child || child.family_id !== locals.user.family_id) {
+			return fail(403, { error: 'Access denied' });
 		}
 
 		const formData = await request.formData();
