@@ -236,25 +236,12 @@ export const actions: Actions = {
 
 		try {
 			const order = JSON.parse(orderJson) as string[];
-			console.log('Reordering targets:', order);
-			for (let i = 0; i < order.length; i++) {
-				const targetId = order[i];
-				console.log(`Updating target ${targetId} to sort_order ${i}`);
-				try {
-					await updateSavingTarget(db, targetId, { sort_order: i });
-					console.log(`Updated target ${targetId} successfully`);
-				} catch (innerError) {
-					console.error(`Failed to update target ${targetId}:`, innerError);
-					throw innerError;
-				}
-			}
-			console.log('Targets reordered successfully');
+			await Promise.all(
+				order.map((targetId, index) => updateSavingTarget(db, targetId, { sort_order: index }))
+			);
 			return { success: 'Targets reordered' };
-		} catch (e) {
-			console.error('Failed to reorder targets:', e);
-			return fail(400, {
-				error: `Invalid order data: ${e instanceof Error ? e.message : String(e)}`
-			});
+		} catch {
+			return fail(400, { error: 'Invalid order data' });
 		}
 	},
 
