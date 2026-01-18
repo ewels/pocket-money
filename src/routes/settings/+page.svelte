@@ -137,7 +137,7 @@
 				</div>
 
 				<!-- Invite New Guardian -->
-				<div class="border-t pt-4">
+				<div class="pt-4">
 					<p class="text-sm text-gray-500 mb-2">Invite New Guardian</p>
 
 					{#if activeInviteCode}
@@ -236,41 +236,31 @@
 					{:else}
 						<div class="space-y-2">
 							{#each data.children as child}
-								<div class="flex items-center justify-between gap-3 p-2 rounded-lg bg-gray-50">
-									<a href="/child/{child.id}" class="flex items-center gap-3 flex-1 min-w-0">
-										{#if child.photo_data}
-											<img
-												src={child.photo_data}
-												alt={child.name}
-												class="w-8 h-8 rounded-full object-cover"
-											/>
-										{:else}
-											<div
-												class="w-8 h-8 rounded-full flex items-center justify-center"
-												style="background-color: var(--color-{child.color}-100, #dbeafe)"
-											>
-												<span
-													class="text-sm font-medium"
-													style="color: var(--color-{child.color}-600, #2563eb)"
-												>
-													{getInitials(child.name)}
-												</span>
-											</div>
-										{/if}
-										<p class="text-sm font-medium text-gray-900 truncate">{child.name}</p>
-									</a>
-									<div class="flex items-center gap-2">
-										<a href="/child/{child.id}" class="text-sm text-blue-600 hover:text-blue-800">
-											View
-										</a>
-										<a
-											href="/child/{child.id}/config"
-											class="text-sm text-gray-500 hover:text-gray-700"
+								<a
+									href="/child/{child.id}"
+									class="flex items-center gap-3 p-2 rounded-lg bg-gray-50 hover:bg-gray-100"
+								>
+									{#if child.photo_data}
+										<img
+											src={child.photo_data}
+											alt={child.name}
+											class="w-8 h-8 rounded-full object-cover"
+										/>
+									{:else}
+										<div
+											class="w-8 h-8 rounded-full flex items-center justify-center"
+											style="background-color: var(--color-{child.color}-100, #dbeafe)"
 										>
-											Edit
-										</a>
-									</div>
-								</div>
+											<span
+												class="text-sm font-medium"
+												style="color: var(--color-{child.color}-600, #2563eb)"
+											>
+												{getInitials(child.name)}
+											</span>
+										</div>
+									{/if}
+									<p class="text-sm font-medium text-gray-900 truncate">{child.name}</p>
+								</a>
 							{/each}
 						</div>
 						<div class="mt-3">
