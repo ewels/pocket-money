@@ -1,6 +1,5 @@
 import { redirect, type Handle } from '@sveltejs/kit';
 import { getUserFromSession } from '$lib/server/auth';
-import { getSettings } from '$lib/server/db';
 
 const publicRoutes = ['/login', '/register'];
 const pinExemptRoutes = ['/pin', '/api/', '/login'];
@@ -29,17 +28,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	// Check PIN if enabled and user is authenticated
-	if (
-		event.locals.user &&
-		event.locals.session &&
-		!isPinExemptRoute &&
-		event.locals.user.family_id
-	) {
-		const settings = await getSettings(db, event.locals.user.family_id);
-
-		if (settings.pin_enabled && settings.pin_hash) {
+	if (event.locals.user && event.locals.session && !isPinExemptRoute) {
+		if (event.locals.user.pin_enabled && event.locals.user.pin_hash) {
 			const now = Math.floor(Date.now() / 1000);
-			const timeout = settings.pin_timeout_minutes * 60;
+			const timeout = event.locals.user.pin_timeout_minutes * 60;
 			const pinVerifiedAt = event.locals.session.pin_verified_at;
 
 			if (!pinVerifiedAt || now - pinVerifiedAt > timeout) {

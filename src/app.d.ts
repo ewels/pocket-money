@@ -10,6 +10,9 @@ declare global {
 				photo_url: string | null;
 				photo_data: string | null;
 				family_id: string | null;
+				pin_enabled: number;
+				pin_hash: string | null;
+				pin_timeout_minutes: number;
 			} | null;
 			session: {
 				id: string;

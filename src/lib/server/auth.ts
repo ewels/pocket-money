@@ -83,7 +83,10 @@ export async function getUserFromSession(
 			name: user.name,
 			photo_url: user.photo_url,
 			photo_data: user.photo_data,
-			family_id: user.family_id
+			family_id: user.family_id,
+			pin_enabled: user.pin_enabled,
+			pin_hash: user.pin_hash,
+			pin_timeout_minutes: user.pin_timeout_minutes
 		},
 		session: {
 			id: session.id,

@@ -11,13 +11,15 @@
 	];
 
 	let mobileMenuOpen = $state(false);
+
+	const isPinPage = $derived($page.url.pathname === '/pin');
 </script>
 
 <svelte:head>
 	<title>Pocket Money</title>
 </svelte:head>
 
-{#if data.user}
+{#if data.user && !isPinPage}
 	<div class="min-h-full">
 		<!-- Navigation -->
 		<nav class="bg-white shadow-sm border-b border-gray-200">

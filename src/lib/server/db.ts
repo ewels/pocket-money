@@ -8,6 +8,9 @@ export type User = {
 	photo_url: string | null;
 	photo_data: string | null;
 	family_id: string | null;
+	pin_enabled: number;
+	pin_hash: string | null;
+	pin_timeout_minutes: number;
 	created_at: number;
 };
 
@@ -295,6 +298,24 @@ export async function updateUser(
 export async function getUserCount(db: D1Database): Promise<number> {
 	const result = await db.prepare('SELECT COUNT(*) as count FROM users').first<{ count: number }>();
 	return result?.count ?? 0;
+}
+
+export async function updateUserPin(
+	db: D1Database,
+	userId: string,
+	updates: Partial<Pick<User, 'pin_enabled' | 'pin_hash' | 'pin_timeout_minutes'>>
+): Promise<void> {
+	const user = await getUserById(db, userId);
+	if (!user) return;
+	await db
+		.prepare('UPDATE users SET pin_enabled = ?, pin_hash = ?, pin_timeout_minutes = ? WHERE id = ?')
+		.bind(
+			updates.pin_enabled ?? user.pin_enabled,
+			updates.pin_hash !== undefined ? updates.pin_hash : user.pin_hash,
+			updates.pin_timeout_minutes ?? user.pin_timeout_minutes,
+			userId
+		)
+		.run();
 }
 
 export async function createSession(

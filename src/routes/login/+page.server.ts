@@ -118,7 +118,10 @@ export const actions: Actions = {
 			password_hash: passwordHash,
 			name,
 			photo_url: null,
-			family_id: familyId
+			family_id: familyId,
+			pin_enabled: 0,
+			pin_hash: null,
+			pin_timeout_minutes: 5
 		});
 
 		// Mark invite code as used if provided

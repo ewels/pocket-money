@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
-import { updateUser, getUserByEmail, getUserById } from '$lib/server/db';
-import { hashPassword, verifyPassword } from '$lib/server/auth';
+import { updateUser, getUserByEmail, getUserById, updateUserPin } from '$lib/server/db';
+import { hashPassword, verifyPassword, hashPin, verifyPin } from '$lib/server/auth';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -148,5 +148,101 @@ export const actions: Actions = {
 		await updateUser(db, locals.user.id, { photo_data: null });
 
 		return { success: 'Photo removed' };
+	},
+
+	setPin: async ({ request, platform, locals }) => {
+		if (!locals.user) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
+		const db = platform?.env?.DB;
+		if (!db) {
+			return fail(500, { error: 'Database not available' });
+		}
+
+		const formData = await request.formData();
+		const currentPin = formData.get('currentPin')?.toString();
+		const newPin = formData.get('newPin')?.toString();
+		const confirmPin = formData.get('confirmPin')?.toString();
+
+		if (!newPin || !confirmPin) {
+			return fail(400, { error: 'PIN is required' });
+		}
+
+		if (newPin !== confirmPin) {
+			return fail(400, { error: 'PINs do not match' });
+		}
+
+		if (!/^\d{4,6}$/.test(newPin)) {
+			return fail(400, { error: 'PIN must be 4-6 digits' });
+		}
+
+		// If user already has a PIN, verify the current one
+		if (locals.user.pin_enabled && locals.user.pin_hash) {
+			if (!currentPin) {
+				return fail(400, { error: 'Current PIN is required' });
+			}
+			const valid = await verifyPin(currentPin, locals.user.pin_hash);
+			if (!valid) {
+				return fail(400, { error: 'Current PIN is incorrect' });
+			}
+		}
+
+		const pinHash = await hashPin(newPin);
+		await updateUserPin(db, locals.user.id, { pin_enabled: 1, pin_hash: pinHash });
+
+		return { success: 'PIN has been set successfully' };
+	},
+
+	disablePin: async ({ request, platform, locals }) => {
+		if (!locals.user) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
+		const db = platform?.env?.DB;
+		if (!db) {
+			return fail(500, { error: 'Database not available' });
+		}
+
+		const formData = await request.formData();
+		const currentPin = formData.get('currentPin')?.toString();
+
+		if (!currentPin) {
+			return fail(400, { error: 'Current PIN is required' });
+		}
+
+		if (!locals.user.pin_hash) {
+			return fail(400, { error: 'PIN is not enabled' });
+		}
+
+		const valid = await verifyPin(currentPin, locals.user.pin_hash);
+		if (!valid) {
+			return fail(400, { error: 'PIN is incorrect' });
+		}
+
+		await updateUserPin(db, locals.user.id, { pin_enabled: 0, pin_hash: null });
+
+		return { success: 'PIN has been disabled' };
+	},
+
+	updatePinTimeout: async ({ request, platform, locals }) => {
+		if (!locals.user) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
+		const db = platform?.env?.DB;
+		if (!db) {
+			return fail(500, { error: 'Database not available' });
+		}
+
+		const formData = await request.formData();
+		const timeout = parseInt(formData.get('timeout')?.toString() ?? '5', 10);
+
+		if (![1, 2, 5, 10].includes(timeout)) {
+			return fail(400, { error: 'Invalid timeout value' });
+		}
+
+		await updateUserPin(db, locals.user.id, { pin_timeout_minutes: timeout });
+		return { success: 'PIN timeout updated' };
 	}
 };
