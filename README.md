@@ -12,8 +12,7 @@
 </p>
 
 <p align="center">
-  <a href="https://pocket-money.ewels.dev">Live Demo</a> •
-  <a href="https://pocket-money-docs.ewels.dev">Documentation</a> •
+  <a href="https://ewels.github.io/pocket-money/">Documentation</a> •
   <a href="#-quick-start">Quick Start</a>
 </p>
 
@@ -62,7 +61,7 @@ Then open [http://localhost:5173](http://localhost:5173) and register a new acco
 
 ### Production Deployment
 
-See the [Installation Guide](https://pocket-money-docs.ewels.dev/getting-started/installation/) for full deployment instructions.
+See the [Installation Guide](https://ewels.github.io/pocket-money/getting-started/installation/) for full deployment instructions.
 
 ## 🛠️ Tech Stack
 
@@ -87,15 +86,15 @@ More than enough for family use!
 
 ## 📖 Documentation
 
-Full documentation is available at **[pocket-money-docs.ewels.dev](https://pocket-money-docs.ewels.dev)**
+Full documentation is available at **[ewels.github.io/pocket-money](https://ewels.github.io/pocket-money/)**
 
-- [Installation & Deployment](https://pocket-money-docs.ewels.dev/getting-started/installation/)
-- [User Guide](https://pocket-money-docs.ewels.dev/guide/)
-- [Contributing](https://pocket-money-docs.ewels.dev/contributing/)
+- [Installation & Deployment](https://ewels.github.io/pocket-money/getting-started/installation/)
+- [User Guide](https://ewels.github.io/pocket-money/guide/)
+- [Contributing](https://ewels.github.io/pocket-money/contributing/)
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please see the [Contributing Guide](https://pocket-money-docs.ewels.dev/contributing/) for details.
+Contributions are welcome! Please see the [Contributing Guide](https://ewels.github.io/pocket-money/contributing/) for details.
 
 ## 📄 License
 
