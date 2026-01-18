@@ -33,12 +33,43 @@ npm run db:migrate:prod
 
 ## Deploy
 
+### Manual Deployment
+
 ```bash
 npm run build
 wrangler pages deploy .svelte-kit/cloudflare
 ```
 
 Your app will be available at a `*.pages.dev` URL.
+
+### Automatic Deployment with GitHub Actions
+
+The repository includes a GitHub Actions workflow that automatically deploys to Cloudflare Pages when you push to the `main` branch. This ensures the deployed version always matches the code on GitHub.
+
+#### Required Secrets
+
+Set up the following secrets in your GitHub repository (**Settings** → **Secrets and variables** → **Actions**):
+
+| Secret                   | Description                                                                                          |
+| ------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `CLOUDFLARE_API_TOKEN`   | API token with "Edit Cloudflare Pages" permissions. Create one at [Cloudflare Dashboard → API Tokens](https://dash.cloudflare.com/profile/api-tokens). |
+| `CLOUDFLARE_ACCOUNT_ID`  | Your Cloudflare account ID. Find it on any Cloudflare dashboard page in the right sidebar.          |
+
+#### Creating the API Token
+
+1. Go to [Cloudflare Dashboard → API Tokens](https://dash.cloudflare.com/profile/api-tokens)
+2. Click **Create Token**
+3. Select **Edit Cloudflare Workers** template (this includes Pages permissions)
+4. Under **Account Resources**, select your account
+5. Under **Zone Resources**, select "All zones" or your specific zone
+6. Click **Continue to summary** → **Create Token**
+7. Copy the token immediately (it won't be shown again)
+
+#### How It Works
+
+1. On every push to `main`, the CI workflow runs (lint, type check, tests, build)
+2. If all checks pass, the deploy workflow builds the app and deploys to Cloudflare Pages
+3. The deployment URL will be shown in the Actions log
 
 ## Set Up Recurring Payments
 
