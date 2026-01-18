@@ -17,5 +17,5 @@ site
 # Playwright
 .playwright-mcp
 
-# Docs homepage (grid cards require specific formatting)
-docs/index.md
+# Documentation (has special formatting for grid cards, admonitions)
+docs

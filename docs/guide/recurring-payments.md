@@ -52,7 +52,7 @@ Remove the rule entirely. Use the trash icon to delete.
 Recurring payments are processed when the `/api/cron` endpoint is called. This should be configured to run daily - see the [Deployment Guide](../getting-started/deployment.md#set-up-recurring-payments).
 
 !!! info "Timing"
-Payments are deposited when the cron job runs, typically once per day. The exact time depends on your cron schedule.
+    Payments are deposited when the cron job runs, typically once per day. The exact time depends on your cron schedule.
 
 ## Transaction Attribution
 
