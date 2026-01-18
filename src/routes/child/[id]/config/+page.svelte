@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
 	import { getInitials, colorHexMap, type ChildColor } from '$lib/utils';
 	import { formatMoney } from '$lib/currencies';
 	import ColorPicker from '$lib/components/ColorPicker.svelte';
@@ -214,7 +215,26 @@
 						{getInitials(data.child.name)}
 					</div>
 				{/if}
-				<PhotoUpload name="photo" />
+				<div class="flex flex-col gap-2">
+					<PhotoUpload name="photo" />
+					{#if data.child.photo_data}
+						<button
+							type="button"
+							class="text-sm text-red-600 hover:text-red-800 text-left"
+							onclick={async () => {
+								await fetch('?/deleteChildPhoto', {
+									method: 'POST',
+									headers: {
+										'x-sveltekit-action': 'true'
+									}
+								});
+								await invalidateAll();
+							}}
+						>
+							Remove photo
+						</button>
+					{/if}
+				</div>
 			</div>
 
 			<div>
@@ -641,7 +661,28 @@
 										alt={target.name}
 										class="w-20 h-20 rounded-lg object-cover"
 									/>
-									<p class="text-xs text-gray-500 mt-1">Current photo (upload new to replace)</p>
+									<div class="flex items-center gap-2 mt-1">
+										<p class="text-xs text-gray-500">Current photo (upload new to replace)</p>
+										<button
+											type="button"
+											class="text-xs text-red-600 hover:text-red-800"
+											onclick={async () => {
+												const formData = new FormData();
+												formData.set('targetId', target.id);
+												await fetch('?/deleteTargetPhoto', {
+													method: 'POST',
+													body: formData,
+													headers: {
+														'x-sveltekit-action': 'true'
+													}
+												});
+												editingTarget = null;
+												await invalidateAll();
+											}}
+										>
+											Remove
+										</button>
+									</div>
 								</div>
 							{/if}
 							<PhotoUpload name="photo" />

@@ -54,7 +54,25 @@
 						{getInitials(data.user?.name ?? '')}
 					</div>
 				{/if}
-				<PhotoUpload name="photo" />
+				<div class="flex flex-col gap-2">
+					<PhotoUpload name="photo" />
+					{#if data.user?.photo_data}
+						<button
+							type="button"
+							class="text-sm text-red-600 hover:text-red-800"
+							onclick={(e) => {
+								e.preventDefault();
+								const form = document.createElement('form');
+								form.method = 'POST';
+								form.action = '?/deleteAvatar';
+								document.body.appendChild(form);
+								form.submit();
+							}}
+						>
+							Remove photo
+						</button>
+					{/if}
+				</div>
 			</div>
 
 			<!-- Name -->

@@ -350,5 +350,46 @@ export const actions: Actions = {
 
 		await deleteRecurringRule(db, ruleId);
 		return { success: 'Rule deleted' };
+	},
+
+	deleteChildPhoto: async ({ params, platform, locals }) => {
+		if (!locals.user?.family_id) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
+		const db = platform?.env?.DB;
+		if (!db) {
+			return fail(500, { error: 'Database not available' });
+		}
+
+		const child = await getChild(db, params.id);
+		if (!child) {
+			return fail(404, { error: 'Child not found' });
+		}
+
+		if (child.family_id !== locals.user.family_id) {
+			return fail(403, { error: 'Access denied' });
+		}
+
+		await updateChild(db, params.id, { photo_data: null });
+
+		return { success: 'Photo removed' };
+	},
+
+	deleteTargetPhoto: async ({ request, platform }) => {
+		const db = platform?.env?.DB;
+		if (!db) {
+			return fail(500, { error: 'Database not available' });
+		}
+
+		const formData = await request.formData();
+		const targetId = formData.get('targetId')?.toString();
+
+		if (!targetId) {
+			return fail(400, { error: 'Target ID is required' });
+		}
+
+		await updateSavingTarget(db, targetId, { photo_data: null });
+		return { success: 'Photo removed' };
 	}
 };

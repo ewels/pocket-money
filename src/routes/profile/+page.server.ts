@@ -133,5 +133,20 @@ export const actions: Actions = {
 		await updateUser(db, locals.user.id, { password_hash: newPasswordHash });
 
 		return { success: 'Password updated successfully' };
+	},
+
+	deleteAvatar: async ({ locals, platform }) => {
+		if (!locals.user) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
+		const db = platform?.env?.DB;
+		if (!db) {
+			return fail(500, { error: 'Database not available' });
+		}
+
+		await updateUser(db, locals.user.id, { photo_data: null });
+
+		return { success: 'Photo removed' };
 	}
 };
