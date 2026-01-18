@@ -15,6 +15,7 @@
 	let showAddTarget = $state(false);
 	let showAddRecurring = $state(false);
 	let editingTarget = $state<string | null>(null);
+	let editingRule = $state<string | null>(null);
 
 	// Drag and drop state
 	let draggedTargetId = $state<string | null>(null);
@@ -402,6 +403,26 @@
 							</p>
 						</div>
 						<div class="flex gap-1">
+							<button
+								type="button"
+								class="p-2 text-gray-400 hover:text-gray-600"
+								title="Edit"
+								onclick={() => (editingRule = rule.id)}
+							>
+								<svg
+									class="h-5 w-5"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke-width="1.5"
+									stroke="currentColor"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
+									/>
+								</svg>
+							</button>
 							<form method="POST" action="?/toggleRule" use:enhance>
 								<input type="hidden" name="ruleId" value={rule.id} />
 								<input type="hidden" name="active" value={rule.active ? '0' : '1'} />
@@ -663,6 +684,83 @@
 								>Cancel</button
 							>
 							<button type="submit" class="btn-primary">Save</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	{/if}
+{/if}
+
+<!-- Edit Recurring Rule Modal -->
+{#if editingRule}
+	{@const rule = data.recurringRules.find((r) => r.id === editingRule)}
+	{#if rule}
+		<div class="fixed inset-0 z-50 overflow-y-auto">
+			<div class="flex min-h-full items-center justify-center p-4">
+				<button
+					type="button"
+					class="fixed inset-0 bg-black/50"
+					onclick={() => (editingRule = null)}
+					aria-label="Close"
+				></button>
+				<div class="relative w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+					<h2 class="text-lg font-semibold text-gray-900">Edit Recurring Payment</h2>
+					<form
+						method="POST"
+						action="?/editRecurring"
+						use:enhance={() => {
+							return async ({ result, update }) => {
+								if (result.type === 'success') editingRule = null;
+								await update();
+							};
+						}}
+						class="mt-4 space-y-4"
+					>
+						<input type="hidden" name="ruleId" value={rule.id} />
+						<div>
+							<label for="editRecurringAmount" class="label">Amount</label>
+							<input
+								id="editRecurringAmount"
+								name="amount"
+								type="number"
+								step="0.01"
+								min="0.01"
+								required
+								class="input"
+								value={rule.amount}
+							/>
+						</div>
+						<div>
+							<label for="editRecurringDescription" class="label">Description (optional)</label>
+							<input
+								id="editRecurringDescription"
+								name="description"
+								type="text"
+								class="input"
+								value={rule.description ?? ''}
+								placeholder="e.g., Weekly allowance"
+							/>
+						</div>
+						<div>
+							<label for="editIntervalDays" class="label">Repeat every</label>
+							<select
+								id="editIntervalDays"
+								name="intervalDays"
+								class="input"
+								value={rule.interval_days}
+							>
+								<option value="1">Daily</option>
+								<option value="7">Weekly</option>
+								<option value="14">Every 2 weeks</option>
+								<option value="30">Monthly</option>
+							</select>
+						</div>
+						<div class="flex justify-end gap-3 pt-4">
+							<button type="button" class="btn-secondary" onclick={() => (editingRule = null)}
+								>Cancel</button
+							>
+							<button type="submit" class="btn-primary">Save Changes</button>
 						</div>
 					</form>
 				</div>

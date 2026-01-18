@@ -316,6 +316,36 @@ export const actions: Actions = {
 		return { success: active ? 'Rule resumed' : 'Rule paused' };
 	},
 
+	editRecurring: async ({ request, platform }) => {
+		const db = platform?.env?.DB;
+		if (!db) {
+			return fail(500, { error: 'Database not available' });
+		}
+
+		const formData = await request.formData();
+		const ruleId = formData.get('ruleId')?.toString();
+		const amountStr = formData.get('amount')?.toString();
+		const description = formData.get('description')?.toString().trim() || null;
+		const intervalDays = parseInt(formData.get('intervalDays')?.toString() ?? '7', 10);
+
+		if (!ruleId || !amountStr) {
+			return fail(400, { error: 'Rule ID and amount are required' });
+		}
+
+		const amount = parseFloat(amountStr);
+		if (isNaN(amount) || amount <= 0) {
+			return fail(400, { error: 'Invalid amount' });
+		}
+
+		await updateRecurringRule(db, ruleId, {
+			amount,
+			description,
+			interval_days: intervalDays
+		});
+
+		return { success: 'Recurring payment updated' };
+	},
+
 	deleteRule: async ({ request, platform }) => {
 		const db = platform?.env?.DB;
 		if (!db) {
