@@ -7,7 +7,8 @@
 </p>
 
 <p align="center">
-  <em>A family-friendly pocket money tracker with saving goals and recurring allowances.</em>
+  <em>A family-friendly pocket money tracker with saving goals and recurring allowances.<br>
+  Designed for Cloudflare's free tier — no credit card required.</em>
 </p>
 
 <p align="center">
@@ -36,7 +37,7 @@
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) 20+
-- [Cloudflare account](https://dash.cloudflare.com/sign-up) (free tier works great)
+- [Cloudflare account](https://dash.cloudflare.com/sign-up) (free, no credit card needed)
 
 ### Local Development
 
@@ -73,9 +74,9 @@ See the [Installation Guide](https://pocket-money-docs.ewels.dev/getting-started
 | Styling   | [Tailwind CSS 4](https://tailwindcss.com/)                      |
 | Charts    | [Chart.js](https://www.chartjs.org/)                            |
 
-## 💰 Free Tier Friendly
+## 💰 100% Free Hosting
 
-Pocket Money is designed to run entirely within Cloudflare's generous free tier:
+Pocket Money runs entirely on Cloudflare's free tier — **no credit card required** to deploy:
 
 | Service   | Free Allowance                       |
 | --------- | ------------------------------------ |
