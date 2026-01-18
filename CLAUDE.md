@@ -147,6 +147,7 @@ npm run test:run    # Run once (for CI)
 Test files:
 
 - `src/lib/currencies.test.ts` - Currency formatting tests
+- `src/lib/utils.test.ts` - Utility function tests (initials, dates, progress, intervals)
 - `src/lib/server/auth.test.ts` - Password/PIN hashing tests
 - `src/lib/server/db.test.ts` - UUID/invite code generation tests
 
