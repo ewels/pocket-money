@@ -178,11 +178,23 @@ This catches CI failures locally before pushing.
 
 The docs include screenshots in `docs/assets/screenshots/`. After UI changes, regenerate them:
 
-1. Reset local database: `rm -rf .wrangler && npm run db:migrate && wrangler d1 execute pocket-money-db --local --file=./migrations/0002_photo_data.sql && wrangler d1 execute pocket-money-db --local --file=./migrations/0003_families.sql`
+1. Reset local database: `rm -rf .wrangler && npm run db:migrate`
 2. Start dev server: `npm run dev`
 3. Run: `npm run screenshots`
 
 The script at `scripts/capture-screenshots.ts` automates capturing all screens. See `CONTRIBUTING.md` for details.
+
+## Documentation notes
+
+Admonitions use the following syntax:
+
+```md
+!!! tip "Some title"
+You can write arbitrary text here.
+```
+
+Do not write admontions with `:::` syntax, that doesn't work.
+Docs are built using Zensical.
 
 ## Testing Locally
 

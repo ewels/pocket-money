@@ -72,6 +72,24 @@ You can change which target gets filled first by reordering them:
 3. Click the delete icon (trash)
 4. The target is removed immediately
 
+## Time-to-Target Estimates
+
+When a child has recurring payments set up, each saving target shows an estimated time to reach the goal.
+
+The estimate is calculated based on:
+
+- Current progress toward the target
+- Monthly income from all active recurring payments
+
+The time is displayed as:
+
+- **Weeks** - For goals reachable within a month
+- **Months** - For goals reachable within a year
+- **Years** - For longer-term goals
+
+!!! tip
+    The estimate updates automatically as the balance changes or recurring payments are adjusted.
+
 ## Target Photos and Links
 
 Adding a photo helps visualize the goal, and a link makes it easy to find the item when ready to purchase.

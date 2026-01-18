@@ -20,11 +20,6 @@ The documentation includes screenshots that may need updating after UI changes.
    ```bash
    rm -rf .wrangler
    npm run db:migrate
-   wrangler d1 execute pocket-money-db --local --file=./migrations/0002_photo_data.sql
-   wrangler d1 execute pocket-money-db --local --file=./migrations/0003_families.sql
-   wrangler d1 execute pocket-money-db --local --file=./migrations/0004_webhooks.sql
-   wrangler d1 execute pocket-money-db --local --file=./migrations/0005_webhook_secret.sql
-   wrangler d1 execute pocket-money-db --local --file=./migrations/0006_saving_target_fields.sql
    ```
 
 2. Start the dev server:

@@ -130,6 +130,11 @@ async function main() {
 		await page.click('button:has-text("Add Rule")');
 		await page.waitForSelector('text=Add Recurring Payment >> visible=true');
 		await page.fill('input#recurringAmount', '5');
+		// Select "Weekly" frequency (already default, but be explicit)
+		await page.selectOption('select#intervalType', 'weekly');
+		await page.waitForTimeout(100);
+		// Select Saturday as the day
+		await page.selectOption('select#dayOfWeek', '6');
 		await page.fill('input#recurringDescription', 'Weekly allowance');
 		await screenshot(page, 'add-recurring-modal');
 

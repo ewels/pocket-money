@@ -15,9 +15,10 @@ Click on a child's card to view their profile:
 
 - **Balance** - Current total balance
 - **Balance History** - Chart showing balance changes over time
-- **Saving Targets** - Progress toward savings goals (with quick-add button)
+- **Upcoming Payments** - Next 3 scheduled allowance payments with dates
+- **Saving Targets** - Progress toward savings goals (with quick-add button and time estimates)
 - **Recent Transactions** - List of deposits and withdrawals
-- **Recurring Payments** - Active automatic payments
+- **Pending Deductions** - Shows if any deductions will reduce upcoming payments
 
 ![Child Profile](../assets/screenshots/child-profile-with-transaction.png)
 
@@ -47,6 +48,16 @@ Use the buttons in the top-right of the Balance History chart to change the time
 3. Enter the amount (cannot exceed current balance)
 4. Optionally add a description (e.g., "Bought a toy")
 5. Click confirm
+
+## Adding Deductions
+
+Deductions reduce future recurring payments. See [Recurring Payments - Deductions](recurring-payments.md#deductions) for details.
+
+1. Open a child's profile
+2. Click the **Deduct** button (orange)
+3. Enter the deduction amount
+4. Optionally add a description
+5. Click **Add Deduction**
 
 ## Editing a Child
 
