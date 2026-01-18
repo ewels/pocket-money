@@ -264,16 +264,20 @@ export async function createUser(
 export async function updateUser(
 	db: D1Database,
 	id: string,
-	updates: Partial<Pick<User, 'name' | 'photo_url' | 'photo_data'>>
+	updates: Partial<Pick<User, 'name' | 'photo_url' | 'photo_data' | 'email' | 'password_hash'>>
 ): Promise<void> {
 	const user = await getUserById(db, id);
 	if (!user) return;
 	await db
-		.prepare('UPDATE users SET name = ?, photo_url = ?, photo_data = ? WHERE id = ?')
+		.prepare(
+			'UPDATE users SET name = ?, photo_url = ?, photo_data = ?, email = ?, password_hash = ? WHERE id = ?'
+		)
 		.bind(
 			updates.name ?? user.name,
 			updates.photo_url !== undefined ? updates.photo_url : user.photo_url,
 			updates.photo_data !== undefined ? updates.photo_data : user.photo_data,
+			updates.email ?? user.email,
+			updates.password_hash ?? user.password_hash,
 			id
 		)
 		.run();

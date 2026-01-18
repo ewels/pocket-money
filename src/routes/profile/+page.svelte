@@ -6,6 +6,8 @@
 	let { data, form } = $props();
 
 	let loading = $state(false);
+	let emailLoading = $state(false);
+	let passwordLoading = $state(false);
 </script>
 
 <div class="space-y-6">
@@ -69,11 +71,33 @@
 				<p class="mt-1 text-sm text-gray-500">This name appears in transaction history.</p>
 			</div>
 
-			<!-- Email (read-only) -->
+			<div class="pt-4">
+				<button type="submit" class="btn-primary" disabled={loading}>
+					{loading ? 'Saving...' : 'Save Changes'}
+				</button>
+			</div>
+		</form>
+	</div>
+
+	<!-- Change Email -->
+	<div class="card p-6">
+		<h2 class="text-lg font-semibold text-gray-900 mb-4">Change Email</h2>
+		<form
+			method="POST"
+			action="?/updateEmail"
+			use:enhance={() => {
+				emailLoading = true;
+				return async ({ update }) => {
+					emailLoading = false;
+					await update();
+				};
+			}}
+			class="space-y-4"
+		>
 			<div>
-				<label for="email" class="label">Email</label>
+				<label for="currentEmail" class="label">Current Email</label>
 				<input
-					id="email"
+					id="currentEmail"
 					type="email"
 					class="input bg-gray-50"
 					value={data.user?.email ?? ''}
@@ -81,9 +105,88 @@
 				/>
 			</div>
 
-			<div class="pt-4">
-				<button type="submit" class="btn-primary" disabled={loading}>
-					{loading ? 'Saving...' : 'Save Changes'}
+			<div>
+				<label for="newEmail" class="label">New Email</label>
+				<input id="newEmail" name="newEmail" type="email" required class="input" />
+			</div>
+
+			<div>
+				<label for="emailCurrentPassword" class="label">Current Password</label>
+				<input
+					id="emailCurrentPassword"
+					name="currentPassword"
+					type="password"
+					required
+					class="input"
+					autocomplete="current-password"
+				/>
+			</div>
+
+			<div class="pt-2">
+				<button type="submit" class="btn-primary" disabled={emailLoading}>
+					{emailLoading ? 'Updating...' : 'Update Email'}
+				</button>
+			</div>
+		</form>
+	</div>
+
+	<!-- Change Password -->
+	<div class="card p-6">
+		<h2 class="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
+		<form
+			method="POST"
+			action="?/updatePassword"
+			use:enhance={() => {
+				passwordLoading = true;
+				return async ({ update }) => {
+					passwordLoading = false;
+					await update();
+				};
+			}}
+			class="space-y-4"
+		>
+			<div>
+				<label for="passwordCurrentPassword" class="label">Current Password</label>
+				<input
+					id="passwordCurrentPassword"
+					name="currentPassword"
+					type="password"
+					required
+					class="input"
+					autocomplete="current-password"
+				/>
+			</div>
+
+			<div>
+				<label for="newPassword" class="label">New Password</label>
+				<input
+					id="newPassword"
+					name="newPassword"
+					type="password"
+					required
+					minlength="8"
+					class="input"
+					autocomplete="new-password"
+				/>
+				<p class="mt-1 text-sm text-gray-500">Must be at least 8 characters.</p>
+			</div>
+
+			<div>
+				<label for="confirmPassword" class="label">Confirm New Password</label>
+				<input
+					id="confirmPassword"
+					name="confirmPassword"
+					type="password"
+					required
+					minlength="8"
+					class="input"
+					autocomplete="new-password"
+				/>
+			</div>
+
+			<div class="pt-2">
+				<button type="submit" class="btn-primary" disabled={passwordLoading}>
+					{passwordLoading ? 'Updating...' : 'Update Password'}
 				</button>
 			</div>
 		</form>
