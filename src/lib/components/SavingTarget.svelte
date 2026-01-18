@@ -31,14 +31,14 @@
 		/>
 	{/if}
 	<div class="flex-1 space-y-2">
-		<div class="flex items-center justify-between">
-			<div>
+		<div class="flex items-center justify-between gap-4">
+			<div class="flex items-baseline gap-2 min-w-0">
 				{#if target.link}
 					<a
 						href={target.link}
 						target="_blank"
 						rel="noopener noreferrer"
-						class="font-medium text-gray-900 hover:underline"
+						class="font-medium text-gray-900 hover:underline truncate"
 					>
 						{target.name}
 						<svg
@@ -56,15 +56,24 @@
 						</svg>
 					</a>
 				{:else}
-					<span class="font-medium text-gray-900">{target.name}</span>
+					<span class="font-medium text-gray-900 truncate">{target.name}</span>
+				{/if}
+				<span class="text-sm text-gray-500 whitespace-nowrap">
+					{formatMoney(Math.min(currentBalance, target.target_amount), currency)} / {formatMoney(
+						target.target_amount,
+						currency
+					)}
+				</span>
+			</div>
+			<div class="text-sm text-gray-500 whitespace-nowrap text-right">
+				{#if remaining > 0}
+					<span>{Math.round(progress)}%</span>
+					<span class="text-gray-400 mx-1">·</span>
+					<span>{formatMoney(remaining, currency)} to go</span>
+				{:else}
+					<span class="font-medium" style="color: {color}">Goal reached!</span>
 				{/if}
 			</div>
-			<span class="text-sm text-gray-500">
-				{formatMoney(Math.min(currentBalance, target.target_amount), currency)} / {formatMoney(
-					target.target_amount,
-					currency
-				)}
-			</span>
 		</div>
 		{#if target.description}
 			<p class="text-sm text-gray-500">{target.description}</p>
@@ -74,14 +83,6 @@
 				class="h-full rounded-full transition-all duration-500"
 				style="width: {progress}%; background-color: {color}"
 			></div>
-		</div>
-		<div class="flex items-center justify-between text-sm">
-			<span class="text-gray-500">{Math.round(progress)}% complete</span>
-			{#if remaining > 0}
-				<span class="text-gray-500">{formatMoney(remaining, currency)} to go</span>
-			{:else}
-				<span class="font-medium" style="color: {color}">Goal reached!</span>
-			{/if}
 		</div>
 	</div>
 </div>

@@ -1,0 +1,3 @@
+- [x] Saving targets progress bars on per-child page: change layout
+  - No text under the bar, move amounts next to title, progress to right hand side. For example:
+  - Lego [gap] kr0 / kr300 ......... 0% complete, kr300 to go
