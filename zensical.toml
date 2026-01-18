@@ -23,8 +23,7 @@ nav = [
   { "Reference" = [
     { "Architecture" = "reference/architecture.md" },
     { "Database Schema" = "reference/database.md" }
-  ]},
-  { "GitHub" = "https://github.com/ewels/pocket-money" }
+  ]}
 ]
 
 [project.markdown_extensions.admonition]
