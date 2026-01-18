@@ -236,6 +236,7 @@
 							onclick={async () => {
 								await fetch('?/deleteChildPhoto', {
 									method: 'POST',
+									body: new FormData(),
 									headers: {
 										'x-sveltekit-action': 'true'
 									}

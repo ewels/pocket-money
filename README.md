@@ -2,6 +2,8 @@
 
 A family pocket money tracking PWA built with SvelteKit, hosted on Cloudflare Pages with D1 database.
 
+![Child Profile Screenshot](docs/assets/screenshots/child-profile-featured.png)
+
 ## Features
 
 - **Family System**: Invite family members to share access to children's accounts

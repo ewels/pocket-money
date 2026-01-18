@@ -27,6 +27,8 @@
   border-child-cyan border-child-blue border-child-indigo border-child-purple border-child-pink border-child-rose
   ring-child-red ring-child-orange ring-child-yellow ring-child-lime ring-child-green ring-child-teal
   ring-child-cyan ring-child-blue ring-child-indigo ring-child-purple ring-child-pink ring-child-rose
+  ring-child-red/20 ring-child-orange/20 ring-child-yellow/20 ring-child-lime/20 ring-child-green/20 ring-child-teal/20
+  ring-child-cyan/20 ring-child-blue/20 ring-child-indigo/20 ring-child-purple/20 ring-child-pink/20 ring-child-rose/20
 ");
 
 @layer base {

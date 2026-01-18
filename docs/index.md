@@ -2,7 +2,7 @@
 
 A family pocket money tracking app built with SvelteKit and hosted on Cloudflare.
 
-![Dashboard Screenshot](assets/screenshots/child-profile-with-transaction.png)
+![Child Profile Screenshot](assets/screenshots/child-profile-featured.png)
 
 <!-- prettier-ignore-start -->
 <div class="grid cards" markdown>

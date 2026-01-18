@@ -61,8 +61,7 @@
 				<img
 					src={data.child.photo_data}
 					alt={data.child.name}
-					class="h-16 w-16 rounded-full object-cover ring-4"
-					style="--tw-ring-color: {colorHex}40"
+					class="h-16 w-16 rounded-full object-cover ring-4 ring-child-{data.child.color}/20"
 				/>
 			{:else}
 				<div

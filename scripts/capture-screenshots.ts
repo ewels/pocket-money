@@ -142,6 +142,12 @@ async function main() {
 		await page.waitForTimeout(500);
 		await screenshot(page, 'child-settings-configured', true);
 
+		// Go back to child profile to capture featured screenshot with all features
+		await page.click('a:has-text("Back to child profile")');
+		await page.waitForURL(/\/child\/[^/]+$/);
+		await page.waitForLoadState('networkidle');
+		await screenshot(page, 'child-profile-featured');
+
 		// ============================================
 		// App Settings Screenshots
 		// ============================================
