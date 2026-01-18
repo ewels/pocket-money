@@ -28,6 +28,7 @@ Each recurring payment can be:
 ### Paused / Resumed
 
 Toggle the rule on or off without deleting it. Useful for:
+
 - Vacation periods
 - When allowance is temporarily suspended
 - Testing the setup
@@ -37,6 +38,7 @@ Toggle the rule on or off without deleting it. Useful for:
 Skip just the next scheduled payment, then continue as normal. The skip flag resets after one payment cycle.
 
 Use this when:
+
 - A child already received extra money
 - You want to skip a holiday week
 - One-time adjustment needed
@@ -50,11 +52,13 @@ Remove the rule entirely. Use the trash icon to delete.
 Recurring payments are processed when the `/api/cron` endpoint is called. This should be configured to run daily - see the [Deployment Guide](../getting-started/deployment.md#set-up-recurring-payments).
 
 !!! info "Timing"
+
     Payments are deposited when the cron job runs, typically once per day. The exact time depends on your cron schedule.
 
 ## Transaction Attribution
 
 Recurring payments appear in the transaction history as:
+
 - **Type**: Recurring (indicated by an icon)
 - **Who**: System (no user attributed)
 - **Description**: Whatever you set when creating the rule

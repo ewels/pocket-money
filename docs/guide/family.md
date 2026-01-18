@@ -55,14 +55,14 @@ In Settings, you can see all members of your family:
 
 ## What's Shared
 
-| Shared Across Family | Per-User |
-|---------------------|----------|
-| Children | Login credentials |
-| Transactions | Name |
-| Saving targets | Profile photo |
-| Recurring rules | |
-| Currency setting | |
-| PIN setting | |
+| Shared Across Family | Per-User          |
+| -------------------- | ----------------- |
+| Children             | Login credentials |
+| Transactions         | Name              |
+| Saving targets       | Profile photo     |
+| Recurring rules      |                   |
+| Currency setting     |                   |
+| PIN setting          |                   |
 
 ## Security Considerations
 

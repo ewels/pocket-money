@@ -48,7 +48,7 @@ async function main() {
 		await screenshot(page, 'login');
 
 		// Show registration form
-		await page.click('text=Don\'t have an account? Register');
+		await page.click("text=Don't have an account? Register");
 		await page.waitForTimeout(300);
 		await screenshot(page, 'register', true);
 

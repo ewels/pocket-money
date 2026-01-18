@@ -50,6 +50,7 @@ Click the gear icon on a child's profile to access settings:
 ## Deleting a Child
 
 !!! warning "This cannot be undone"
+
     Deleting a child removes all their transactions, saving targets, and recurring rules.
 
 1. Go to child settings (gear icon)

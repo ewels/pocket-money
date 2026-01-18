@@ -17,11 +17,13 @@ Saving targets help children work toward financial goals with visual progress tr
 The progress bar shows what percentage of the child's **current balance** would cover the target amount.
 
 For example:
+
 - Target: $50 for a video game
 - Current balance: $25
 - Progress: 50%
 
 !!! note
+
     Progress is based on total balance, not money set aside specifically for that target. A child saving for multiple things will see progress on all targets as their balance grows.
 
 ## Editing a Target

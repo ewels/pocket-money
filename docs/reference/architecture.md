@@ -75,24 +75,24 @@ All queries filter by `family_id` to ensure:
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/login?/login` | User login |
-| POST | `/login?/register` | User registration |
-| POST | `/login?/logout` | User logout |
-| GET | `/api/cron` | Process recurring payments |
+| Method | Endpoint           | Description                |
+| ------ | ------------------ | -------------------------- |
+| POST   | `/login?/login`    | User login                 |
+| POST   | `/login?/register` | User registration          |
+| POST   | `/login?/logout`   | User logout                |
+| GET    | `/api/cron`        | Process recurring payments |
 
 All other data mutations use SvelteKit form actions.
 
 ## Security
 
-| Feature | Implementation |
-|---------|----------------|
-| Password hashing | bcrypt (12 rounds) |
-| PIN hashing | bcrypt (10 rounds) |
-| Session cookies | httpOnly, secure, sameSite=lax |
-| CSRF protection | SvelteKit form actions |
-| Data isolation | Family-based filtering |
+| Feature          | Implementation                 |
+| ---------------- | ------------------------------ |
+| Password hashing | bcrypt (12 rounds)             |
+| PIN hashing      | bcrypt (10 rounds)             |
+| Session cookies  | httpOnly, secure, sameSite=lax |
+| CSRF protection  | SvelteKit form actions         |
+| Data isolation   | Family-based filtering         |
 
 ## Styling
 

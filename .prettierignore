@@ -1,0 +1,18 @@
+# Package managers
+node_modules
+package-lock.json
+
+# Build outputs
+build
+.svelte-kit
+.wrangler
+
+# Generated files
+*.min.js
+*.min.css
+
+# Documentation site output
+site
+
+# Playwright
+.playwright-mcp

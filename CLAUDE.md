@@ -5,6 +5,7 @@ This document helps Claude (and other AI assistants) understand the Pocket Money
 ## Project Overview
 
 Pocket Money is a family pocket money tracking PWA built with:
+
 - **SvelteKit** (Svelte 5 with runes)
 - **Cloudflare Pages** (hosting)
 - **Cloudflare D1** (SQLite database)
@@ -14,6 +15,7 @@ Pocket Money is a family pocket money tracking PWA built with:
 ## Key Architecture Decisions
 
 ### Family System
+
 - Each user belongs to exactly one family
 - Children belong to a family
 - Users can only see/edit children in their family
@@ -21,11 +23,13 @@ Pocket Money is a family pocket money tracking PWA built with:
 - Settings (currency, PIN) are per-family
 
 ### Authentication
+
 - Password hashing: bcrypt, 12 rounds
 - Sessions: 30-day cookies, stored in D1
 - Optional PIN protection with configurable timeout
 
 ### Data Storage
+
 - All IDs are UUIDs (crypto.randomUUID())
 - Timestamps are Unix timestamps (seconds)
 - Photos stored as base64 in `photo_data` column
@@ -54,32 +58,34 @@ Pocket Money is a family pocket money tracking PWA built with:
 ## Common Patterns
 
 ### SvelteKit Form Actions
+
 All mutations use SvelteKit form actions, not API endpoints:
 
 ```typescript
 export const actions: Actions = {
-  actionName: async ({ request, platform, locals }) => {
-    // Validate auth
-    if (!locals.user?.family_id) {
-      return fail(401, { error: 'Not authenticated' });
-    }
+	actionName: async ({ request, platform, locals }) => {
+		// Validate auth
+		if (!locals.user?.family_id) {
+			return fail(401, { error: 'Not authenticated' });
+		}
 
-    // Get DB
-    const db = platform?.env?.DB;
-    if (!db) {
-      return fail(500, { error: 'Database not available' });
-    }
+		// Get DB
+		const db = platform?.env?.DB;
+		if (!db) {
+			return fail(500, { error: 'Database not available' });
+		}
 
-    // Process form data
-    const formData = await request.formData();
-    // ...
+		// Process form data
+		const formData = await request.formData();
+		// ...
 
-    return { success: 'Message' };
-  }
+		return { success: 'Message' };
+	}
 };
 ```
 
 ### Family-Scoped Queries
+
 Always filter by family_id:
 
 ```typescript
@@ -91,15 +97,16 @@ const children = await db.prepare('SELECT * FROM children').all();
 ```
 
 ### Verifying Resource Ownership
+
 Before showing/editing a resource, verify family ownership:
 
 ```typescript
 const child = await getChild(db, params.id);
 if (!child) {
-  throw error(404, 'Child not found');
+	throw error(404, 'Child not found');
 }
 if (child.family_id !== locals.user.family_id) {
-  throw error(403, 'Access denied');
+	throw error(403, 'Access denied');
 }
 ```
 
@@ -108,6 +115,7 @@ if (child.family_id !== locals.user.family_id) {
 Located in `migrations/`. Run in order by number prefix.
 
 To add a new migration:
+
 1. Create `migrations/NNNN_description.sql`
 2. Run locally: `npm run db:migrate`
 3. Run in production: `npm run db:migrate:prod`
@@ -115,12 +123,56 @@ To add a new migration:
 ## Development Commands
 
 ```bash
-npm run dev          # Start dev server
-npm run build        # Build for production
-npm run db:migrate   # Run local migrations
+npm run dev              # Start dev server
+npm run build            # Build for production
+npm run db:migrate       # Run local migrations
 npm run db:migrate:prod  # Run production migrations
-npm run screenshots  # Regenerate documentation screenshots
+npm run screenshots      # Regenerate documentation screenshots
+npm run test             # Run tests in watch mode
+npm run test:run         # Run tests once
+npm run lint             # Run ESLint
+npm run format           # Format code with Prettier
+npm run format:check     # Check formatting
 ```
+
+## Testing
+
+Tests use **Vitest** and are located alongside source files with `.test.ts` extension.
+
+```bash
+npm run test        # Watch mode (re-runs on file changes)
+npm run test:run    # Run once (for CI)
+```
+
+Test files:
+
+- `src/lib/currencies.test.ts` - Currency formatting tests
+- `src/lib/server/auth.test.ts` - Password/PIN hashing tests
+- `src/lib/server/db.test.ts` - UUID/invite code generation tests
+
+## Git Hooks
+
+The project uses **Husky** for git hooks. These run automatically after `npm install`.
+
+### Pre-commit (on every commit)
+
+- Prettier formats staged files
+- ESLint checks staged `.js`, `.ts`, and `.svelte` files
+
+### Pre-push (before pushing)
+
+- Format check (`npm run format:check`)
+- Lint (`npm run lint`)
+- Type check (`npm run check`)
+- Tests (`npm run test:run`)
+
+This catches CI failures locally before pushing.
+
+## Code Quality
+
+- **ESLint**: TypeScript + Svelte rules. Run `npm run lint` to check.
+- **Prettier**: Consistent formatting. Run `npm run format` to auto-fix.
+- **TypeScript**: Run `npm run check` for type checking.
 
 ## Documentation Screenshots
 
