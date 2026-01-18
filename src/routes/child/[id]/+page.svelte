@@ -211,6 +211,28 @@
 		</div>
 	{/if}
 
+	<!-- Upcoming Payments -->
+	{#if data.upcomingPayments.length > 0}
+		<div class="card p-4">
+			<h3 class="text-sm font-medium text-gray-700 mb-3">Upcoming Payments</h3>
+			<div class="space-y-2">
+				{#each data.upcomingPayments as payment (payment.date)}
+					<div class="flex justify-between text-sm">
+						<span class="text-gray-600">{payment.description || 'Allowance'}</span>
+						<span class="font-medium">
+							{formatMoney(payment.amount, data.settings?.currency ?? 'EUR')} -
+							{new Date(payment.date * 1000).toLocaleDateString(undefined, {
+								weekday: 'short',
+								month: 'short',
+								day: 'numeric'
+							})}
+						</span>
+					</div>
+				{/each}
+			</div>
+		</div>
+	{/if}
+
 	<!-- Saving Targets -->
 	<div class="card p-6">
 		<div class="flex items-center justify-between mb-4">

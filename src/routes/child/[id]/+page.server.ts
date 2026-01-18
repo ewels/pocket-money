@@ -66,6 +66,17 @@ export const load: PageServerLoad = async ({ params, locals, platform, url }) =>
 	const nextPaymentAmount =
 		activeRules.length > 0 ? Math.min(...activeRules.map((r) => r.amount)) : 0;
 
+	// Calculate upcoming payments (next 3)
+	const upcomingPayments = activeRules
+		.slice()
+		.sort((a, b) => a.next_run_at - b.next_run_at)
+		.slice(0, 3)
+		.map((rule) => ({
+			description: rule.description,
+			amount: rule.amount,
+			date: rule.next_run_at
+		}));
+
 	return {
 		child,
 		balance,
@@ -76,7 +87,8 @@ export const load: PageServerLoad = async ({ params, locals, platform, url }) =>
 		historyDays: validHistoryDays,
 		deductions,
 		totalDeductions,
-		nextPaymentAmount
+		nextPaymentAmount,
+		upcomingPayments
 	};
 };
 
