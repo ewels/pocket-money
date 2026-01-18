@@ -8,7 +8,8 @@ import {
 	getChild,
 	getChildBalance,
 	getTotalDeductions,
-	consumeDeductions
+	consumeDeductions,
+	calculateNextRunFromCurrent
 } from '$lib/server/db';
 import { sendWebhook } from '$lib/server/webhook';
 
@@ -26,7 +27,13 @@ export const GET: RequestHandler = async ({ platform }) => {
 	for (const rule of rules) {
 		// Check for deductions
 		const totalDeductions = await getTotalDeductions(db, rule.child_id);
-		const nextRun = Math.floor(Date.now() / 1000) + rule.interval_days * 24 * 60 * 60;
+		const nextRun = calculateNextRunFromCurrent(
+			rule.next_run_at,
+			rule.interval_type,
+			rule.interval_days,
+			rule.day_of_week,
+			rule.day_of_month
+		);
 
 		if (totalDeductions >= rule.amount) {
 			// Full skip - deductions cover entire payment

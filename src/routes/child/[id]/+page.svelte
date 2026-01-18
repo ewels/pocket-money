@@ -19,6 +19,32 @@
 	const color = data.child.color as ChildColor;
 	const colorHex = colorHexMap[color] ?? colorHexMap.blue;
 
+	const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+	function formatIntervalDisplay(rule: (typeof data.recurringRules)[0]): string {
+		switch (rule.interval_type) {
+			case 'daily':
+				return 'Daily';
+			case 'weekly':
+				return `Weekly on ${dayNames[rule.day_of_week ?? 1]}`;
+			case 'monthly': {
+				const day = rule.day_of_month ?? 1;
+				const suffix =
+					day === 1 || day === 21 || day === 31
+						? 'st'
+						: day === 2 || day === 22
+							? 'nd'
+							: day === 3 || day === 23
+								? 'rd'
+								: 'th';
+				return `Monthly on the ${day}${suffix}`;
+			}
+			case 'days':
+			default:
+				return `Every ${rule.interval_days} day${rule.interval_days !== 1 ? 's' : ''}`;
+		}
+	}
+
 	// Date range options for balance history
 	const historyRanges = [
 		{ days: 7, label: '1W' },
@@ -274,7 +300,7 @@
 								{/if}
 							</p>
 							<p class="text-sm text-gray-500">
-								Every {rule.interval_days} day{rule.interval_days !== 1 ? 's' : ''}
+								{formatIntervalDisplay(rule)}
 								{#if !rule.active}
 									<span class="text-orange-500">(paused)</span>
 								{/if}

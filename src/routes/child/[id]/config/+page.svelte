@@ -17,6 +17,37 @@
 	let editingTarget = $state<string | null>(null);
 	let editingRule = $state<string | null>(null);
 
+	// Recurring payment form state
+	let newIntervalType = $state<'daily' | 'weekly' | 'monthly'>('weekly');
+	let newDayOfWeek = $state(1); // Monday
+	let newDayOfMonth = $state(1);
+
+	const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+	function formatIntervalDisplay(rule: (typeof data.recurringRules)[0]): string {
+		switch (rule.interval_type) {
+			case 'daily':
+				return 'Daily';
+			case 'weekly':
+				return `Weekly on ${dayNames[rule.day_of_week ?? 1]}`;
+			case 'monthly': {
+				const day = rule.day_of_month ?? 1;
+				const suffix =
+					day === 1 || day === 21 || day === 31
+						? 'st'
+						: day === 2 || day === 22
+							? 'nd'
+							: day === 3 || day === 23
+								? 'rd'
+								: 'th';
+				return `Monthly on the ${day}${suffix}`;
+			}
+			case 'days':
+			default:
+				return `Every ${rule.interval_days} day${rule.interval_days !== 1 ? 's' : ''}`;
+		}
+	}
+
 	// Drag and drop state
 	let draggedTargetId = $state<string | null>(null);
 	let dragOverTargetId = $state<string | null>(null);
@@ -396,7 +427,7 @@
 								{/if}
 							</p>
 							<p class="text-sm text-gray-500">
-								Every {rule.interval_days} day{rule.interval_days !== 1 ? 's' : ''}
+								{formatIntervalDisplay(rule)}
 								{#if !rule.active}
 									<span class="text-orange-500">(paused)</span>
 								{/if}
@@ -519,7 +550,12 @@
 					action="?/addRecurring"
 					use:enhance={() => {
 						return async ({ result, update }) => {
-							if (result.type === 'success') showAddRecurring = false;
+							if (result.type === 'success') {
+								showAddRecurring = false;
+								newIntervalType = 'weekly';
+								newDayOfWeek = 1;
+								newDayOfMonth = 1;
+							}
 							await update();
 						};
 					}}
@@ -549,14 +585,40 @@
 						/>
 					</div>
 					<div>
-						<label for="intervalDays" class="label">Repeat every</label>
-						<select id="intervalDays" name="intervalDays" class="input">
-							<option value="1">Daily</option>
-							<option value="7" selected>Weekly</option>
-							<option value="14">Every 2 weeks</option>
-							<option value="30">Monthly</option>
+						<label for="intervalType" class="label">Frequency</label>
+						<select
+							id="intervalType"
+							name="intervalType"
+							class="input"
+							bind:value={newIntervalType}
+						>
+							<option value="daily">Daily</option>
+							<option value="weekly">Weekly</option>
+							<option value="monthly">Monthly</option>
 						</select>
 					</div>
+					{#if newIntervalType === 'weekly'}
+						<div>
+							<label for="dayOfWeek" class="label">Day of week</label>
+							<select id="dayOfWeek" name="dayOfWeek" class="input" bind:value={newDayOfWeek}>
+								{#each dayNames as name, i}
+									<option value={i}>{name}</option>
+								{/each}
+							</select>
+						</div>
+					{:else if newIntervalType === 'monthly'}
+						<div>
+							<label for="dayOfMonth" class="label">Day of month</label>
+							<select id="dayOfMonth" name="dayOfMonth" class="input" bind:value={newDayOfMonth}>
+								{#each Array.from({ length: 28 }, (_, i) => i + 1) as day}
+									<option value={day}>{day}</option>
+								{/each}
+							</select>
+							<p class="mt-1 text-xs text-gray-500">
+								If the month has fewer days, payment runs on the last day.
+							</p>
+						</div>
+					{/if}
 					<div class="flex justify-end gap-3 pt-4">
 						<button type="button" class="btn-secondary" onclick={() => (showAddRecurring = false)}
 							>Cancel</button
@@ -696,6 +758,7 @@
 {#if editingRule}
 	{@const rule = data.recurringRules.find((r) => r.id === editingRule)}
 	{#if rule}
+		{@const editIntervalType = rule.interval_type === 'days' ? 'weekly' : rule.interval_type}
 		<div class="fixed inset-0 z-50 overflow-y-auto">
 			<div class="flex min-h-full items-center justify-center p-4">
 				<button
@@ -743,19 +806,43 @@
 							/>
 						</div>
 						<div>
-							<label for="editIntervalDays" class="label">Repeat every</label>
-							<select
-								id="editIntervalDays"
-								name="intervalDays"
-								class="input"
-								value={rule.interval_days}
-							>
-								<option value="1">Daily</option>
-								<option value="7">Weekly</option>
-								<option value="14">Every 2 weeks</option>
-								<option value="30">Monthly</option>
+							<label for="editIntervalType" class="label">Frequency</label>
+							<select id="editIntervalType" name="intervalType" class="input">
+								<option value="daily" selected={editIntervalType === 'daily'}>Daily</option>
+								<option value="weekly" selected={editIntervalType === 'weekly'}>Weekly</option>
+								<option value="monthly" selected={editIntervalType === 'monthly'}>Monthly</option>
 							</select>
 						</div>
+						{#if editIntervalType === 'weekly' || (rule.interval_type === 'days' && rule.interval_days === 7)}
+							<div>
+								<label for="editDayOfWeek" class="label">Day of week</label>
+								<select id="editDayOfWeek" name="dayOfWeek" class="input">
+									{#each dayNames as name, i}
+										<option
+											value={i}
+											selected={rule.day_of_week === i || (rule.day_of_week === null && i === 1)}
+											>{name}</option
+										>
+									{/each}
+								</select>
+							</div>
+						{:else if editIntervalType === 'monthly'}
+							<div>
+								<label for="editDayOfMonth" class="label">Day of month</label>
+								<select id="editDayOfMonth" name="dayOfMonth" class="input">
+									{#each Array.from({ length: 28 }, (_, i) => i + 1) as day}
+										<option
+											value={day}
+											selected={rule.day_of_month === day ||
+												(rule.day_of_month === null && day === 1)}>{day}</option
+										>
+									{/each}
+								</select>
+								<p class="mt-1 text-xs text-gray-500">
+									If the month has fewer days, payment runs on the last day.
+								</p>
+							</div>
+						{/if}
 						<div class="flex justify-end gap-3 pt-4">
 							<button type="button" class="btn-secondary" onclick={() => (editingRule = null)}
 								>Cancel</button

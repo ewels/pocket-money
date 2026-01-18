@@ -12,7 +12,9 @@ import {
 	createRecurringRule,
 	updateRecurringRule,
 	deleteRecurringRule,
-	generateId
+	generateId,
+	calculateNextRun,
+	type IntervalType
 } from '$lib/server/db';
 import { sendWebhook } from '$lib/server/webhook';
 
@@ -271,7 +273,13 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const amountStr = formData.get('amount')?.toString();
 		const description = formData.get('description')?.toString().trim() || null;
-		const intervalDays = parseInt(formData.get('intervalDays')?.toString() ?? '7', 10);
+		const intervalType = (formData.get('intervalType')?.toString() || 'weekly') as IntervalType;
+		const dayOfWeek = formData.get('dayOfWeek')
+			? parseInt(formData.get('dayOfWeek')!.toString(), 10)
+			: null;
+		const dayOfMonth = formData.get('dayOfMonth')
+			? parseInt(formData.get('dayOfMonth')!.toString(), 10)
+			: null;
 
 		if (!amountStr) {
 			return fail(400, { error: 'Amount is required' });
@@ -282,8 +290,13 @@ export const actions: Actions = {
 			return fail(400, { error: 'Invalid amount' });
 		}
 
-		const now = Math.floor(Date.now() / 1000);
-		const nextRun = now + intervalDays * 24 * 60 * 60;
+		// Calculate interval_days for backwards compatibility
+		let intervalDays = 7;
+		if (intervalType === 'daily') intervalDays = 1;
+		else if (intervalType === 'weekly') intervalDays = 7;
+		else if (intervalType === 'monthly') intervalDays = 30;
+
+		const nextRun = calculateNextRun(intervalType, intervalDays, dayOfWeek, dayOfMonth);
 
 		await createRecurringRule(db, {
 			id: generateId(),
@@ -291,6 +304,9 @@ export const actions: Actions = {
 			amount,
 			description,
 			interval_days: intervalDays,
+			interval_type: intervalType,
+			day_of_week: dayOfWeek,
+			day_of_month: dayOfMonth,
 			next_run_at: nextRun,
 			active: 1
 		});
@@ -326,7 +342,13 @@ export const actions: Actions = {
 		const ruleId = formData.get('ruleId')?.toString();
 		const amountStr = formData.get('amount')?.toString();
 		const description = formData.get('description')?.toString().trim() || null;
-		const intervalDays = parseInt(formData.get('intervalDays')?.toString() ?? '7', 10);
+		const intervalType = (formData.get('intervalType')?.toString() || 'weekly') as IntervalType;
+		const dayOfWeek = formData.get('dayOfWeek')
+			? parseInt(formData.get('dayOfWeek')!.toString(), 10)
+			: null;
+		const dayOfMonth = formData.get('dayOfMonth')
+			? parseInt(formData.get('dayOfMonth')!.toString(), 10)
+			: null;
 
 		if (!ruleId || !amountStr) {
 			return fail(400, { error: 'Rule ID and amount are required' });
@@ -337,10 +359,19 @@ export const actions: Actions = {
 			return fail(400, { error: 'Invalid amount' });
 		}
 
+		// Calculate interval_days for backwards compatibility
+		let intervalDays = 7;
+		if (intervalType === 'daily') intervalDays = 1;
+		else if (intervalType === 'weekly') intervalDays = 7;
+		else if (intervalType === 'monthly') intervalDays = 30;
+
 		await updateRecurringRule(db, ruleId, {
 			amount,
 			description,
-			interval_days: intervalDays
+			interval_days: intervalDays,
+			interval_type: intervalType,
+			day_of_week: dayOfWeek,
+			day_of_month: dayOfMonth
 		});
 
 		return { success: 'Recurring payment updated' };

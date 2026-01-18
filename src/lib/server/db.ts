@@ -65,12 +65,17 @@ export type SavingTarget = {
 	created_at: number;
 };
 
+export type IntervalType = 'daily' | 'weekly' | 'monthly' | 'days';
+
 export type RecurringRule = {
 	id: string;
 	child_id: string;
 	amount: number;
 	description: string | null;
 	interval_days: number;
+	interval_type: IntervalType;
+	day_of_week: number | null; // 0-6 (Sunday-Saturday)
+	day_of_month: number | null; // 1-28
 	next_run_at: number;
 	active: number;
 	created_at: number;
@@ -483,7 +488,7 @@ export async function createRecurringRule(
 ): Promise<void> {
 	await db
 		.prepare(
-			'INSERT INTO recurring_rules (id, child_id, amount, description, interval_days, next_run_at, active) VALUES (?, ?, ?, ?, ?, ?, ?)'
+			'INSERT INTO recurring_rules (id, child_id, amount, description, interval_days, interval_type, day_of_week, day_of_month, next_run_at, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 		)
 		.bind(
 			rule.id,
@@ -491,6 +496,9 @@ export async function createRecurringRule(
 			rule.amount,
 			rule.description,
 			rule.interval_days,
+			rule.interval_type,
+			rule.day_of_week,
+			rule.day_of_month,
 			rule.next_run_at,
 			rule.active
 		)
@@ -509,12 +517,15 @@ export async function updateRecurringRule(
 	if (!rule) return;
 	await db
 		.prepare(
-			'UPDATE recurring_rules SET amount = ?, description = ?, interval_days = ?, next_run_at = ?, active = ? WHERE id = ?'
+			'UPDATE recurring_rules SET amount = ?, description = ?, interval_days = ?, interval_type = ?, day_of_week = ?, day_of_month = ?, next_run_at = ?, active = ? WHERE id = ?'
 		)
 		.bind(
 			updates.amount ?? rule.amount,
 			updates.description !== undefined ? updates.description : rule.description,
 			updates.interval_days ?? rule.interval_days,
+			updates.interval_type ?? rule.interval_type,
+			updates.day_of_week !== undefined ? updates.day_of_week : rule.day_of_week,
+			updates.day_of_month !== undefined ? updates.day_of_month : rule.day_of_month,
 			updates.next_run_at ?? rule.next_run_at,
 			updates.active ?? rule.active,
 			id
@@ -742,4 +753,115 @@ export async function consumeDeductions(
 		amountDeducted: paymentAmount - remaining,
 		deductionsConsumed: consumed
 	};
+}
+
+// Helper functions for recurring payment scheduling
+export function calculateNextRun(
+	intervalType: IntervalType,
+	intervalDays: number,
+	dayOfWeek: number | null,
+	dayOfMonth: number | null
+): number {
+	const now = new Date();
+	let nextRun: Date;
+
+	switch (intervalType) {
+		case 'daily': {
+			nextRun = new Date(now);
+			nextRun.setDate(nextRun.getDate() + 1);
+			nextRun.setHours(0, 0, 0, 0);
+			break;
+		}
+		case 'weekly': {
+			nextRun = new Date(now);
+			const targetDay = dayOfWeek ?? 1; // Default to Monday
+			const currentDay = nextRun.getDay();
+			let daysUntilTarget = targetDay - currentDay;
+			if (daysUntilTarget <= 0) daysUntilTarget += 7;
+			nextRun.setDate(nextRun.getDate() + daysUntilTarget);
+			nextRun.setHours(0, 0, 0, 0);
+			break;
+		}
+		case 'monthly': {
+			nextRun = new Date(now);
+			const targetDayOfMonth = dayOfMonth ?? 1;
+			nextRun.setMonth(nextRun.getMonth() + 1);
+			// Handle months with fewer days
+			const lastDayOfMonth = new Date(nextRun.getFullYear(), nextRun.getMonth() + 1, 0).getDate();
+			nextRun.setDate(Math.min(targetDayOfMonth, lastDayOfMonth));
+			nextRun.setHours(0, 0, 0, 0);
+			break;
+		}
+		case 'days':
+		default:
+			nextRun = new Date(now.getTime() + intervalDays * 24 * 60 * 60 * 1000);
+			break;
+	}
+
+	return Math.floor(nextRun.getTime() / 1000);
+}
+
+export function calculateNextRunFromCurrent(
+	currentNextRun: number,
+	intervalType: IntervalType,
+	intervalDays: number,
+	dayOfWeek: number | null,
+	dayOfMonth: number | null
+): number {
+	const current = new Date(currentNextRun * 1000);
+	let nextRun: Date;
+
+	switch (intervalType) {
+		case 'daily': {
+			nextRun = new Date(current);
+			nextRun.setDate(nextRun.getDate() + 1);
+			break;
+		}
+		case 'weekly': {
+			nextRun = new Date(current);
+			nextRun.setDate(nextRun.getDate() + 7);
+			break;
+		}
+		case 'monthly': {
+			nextRun = new Date(current);
+			nextRun.setMonth(nextRun.getMonth() + 1);
+			// Handle months with fewer days
+			const targetDayOfMonth = dayOfMonth ?? current.getDate();
+			const lastDayOfMonth = new Date(nextRun.getFullYear(), nextRun.getMonth() + 1, 0).getDate();
+			nextRun.setDate(Math.min(targetDayOfMonth, lastDayOfMonth));
+			break;
+		}
+		case 'days':
+		default:
+			nextRun = new Date(current.getTime() + intervalDays * 24 * 60 * 60 * 1000);
+			break;
+	}
+
+	return Math.floor(nextRun.getTime() / 1000);
+}
+
+export function formatInterval(rule: RecurringRule): string {
+	const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+	switch (rule.interval_type) {
+		case 'daily':
+			return 'Daily';
+		case 'weekly':
+			return `Weekly on ${dayNames[rule.day_of_week ?? 1]}`;
+		case 'monthly': {
+			const day = rule.day_of_month ?? 1;
+			const suffix =
+				day === 1 || day === 21 || day === 31
+					? 'st'
+					: day === 2 || day === 22
+						? 'nd'
+						: day === 3 || day === 23
+							? 'rd'
+							: 'th';
+			return `Monthly on the ${day}${suffix}`;
+		}
+		case 'days':
+		default:
+			return `Every ${rule.interval_days} day${rule.interval_days !== 1 ? 's' : ''}`;
+	}
 }
