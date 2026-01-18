@@ -48,17 +48,6 @@ export function formatDate(timestamp: number): string {
 	});
 }
 
-export function formatDateTime(timestamp: number): string {
-	const date = new Date(timestamp * 1000);
-	return date.toLocaleString(undefined, {
-		year: 'numeric',
-		month: 'short',
-		day: 'numeric',
-		hour: '2-digit',
-		minute: '2-digit'
-	});
-}
-
 export function formatRelativeTime(timestamp: number): string {
 	const now = Math.floor(Date.now() / 1000);
 	const diff = now - timestamp;

@@ -1,6 +1,33 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@source "../src/**/*.{html,js,svelte,ts}";
+
+@theme {
+	--color-child-red: #ef4444;
+	--color-child-orange: #f97316;
+	--color-child-yellow: #eab308;
+	--color-child-lime: #84cc16;
+	--color-child-green: #22c55e;
+	--color-child-teal: #14b8a6;
+	--color-child-cyan: #06b6d4;
+	--color-child-blue: #3b82f6;
+	--color-child-indigo: #6366f1;
+	--color-child-purple: #a855f7;
+	--color-child-pink: #ec4899;
+	--color-child-rose: #f43f5e;
+}
+
+/* Safelist: force generation of dynamic child color classes */
+@source inline("
+  bg-child-red bg-child-orange bg-child-yellow bg-child-lime bg-child-green bg-child-teal
+  bg-child-cyan bg-child-blue bg-child-indigo bg-child-purple bg-child-pink bg-child-rose
+  text-child-red text-child-orange text-child-yellow text-child-lime text-child-green text-child-teal
+  text-child-cyan text-child-blue text-child-indigo text-child-purple text-child-pink text-child-rose
+  border-child-red border-child-orange border-child-yellow border-child-lime border-child-green border-child-teal
+  border-child-cyan border-child-blue border-child-indigo border-child-purple border-child-pink border-child-rose
+  ring-child-red ring-child-orange ring-child-yellow ring-child-lime ring-child-green ring-child-teal
+  ring-child-cyan ring-child-blue ring-child-indigo ring-child-purple ring-child-pink ring-child-rose
+");
 
 @layer base {
 	html {
@@ -9,6 +36,55 @@
 	body {
 		@apply h-full;
 	}
+
+	/* Form base styles (replaces @tailwindcss/forms) */
+	[type='text'],
+	[type='email'],
+	[type='url'],
+	[type='password'],
+	[type='number'],
+	[type='date'],
+	[type='datetime-local'],
+	[type='month'],
+	[type='search'],
+	[type='tel'],
+	[type='time'],
+	[type='week'],
+	[multiple],
+	textarea,
+	select {
+		@apply appearance-none bg-white border border-gray-300 rounded-md px-3 py-2 text-base text-gray-900 placeholder-gray-400;
+		@apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+	}
+
+	[type='checkbox'],
+	[type='radio'] {
+		@apply appearance-none h-4 w-4 border border-gray-300 bg-white text-blue-600 rounded;
+		@apply focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+	}
+
+	[type='checkbox']:checked,
+	[type='radio']:checked {
+		@apply bg-blue-600 border-blue-600;
+	}
+
+	[type='checkbox']:checked {
+		background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+		background-size: 100% 100%;
+		background-position: center;
+		background-repeat: no-repeat;
+	}
+
+	[type='radio'] {
+		@apply rounded-full;
+	}
+
+	[type='radio']:checked {
+		background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+		background-size: 100% 100%;
+		background-position: center;
+		background-repeat: no-repeat;
+	}
 }
 
 @layer components {
@@ -16,19 +92,19 @@
 		@apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
 	}
 	.btn-primary {
-		@apply btn bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+		@apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
 	}
 	.btn-secondary {
-		@apply btn bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500;
+		@apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500;
 	}
 	.btn-success {
-		@apply btn bg-green-600 text-white hover:bg-green-700 focus:ring-green-500;
+		@apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-green-600 text-white hover:bg-green-700 focus:ring-green-500;
 	}
 	.btn-danger {
-		@apply btn bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+		@apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
 	}
 	.btn-warning {
-		@apply btn bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-500;
+		@apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-500;
 	}
 	.input {
 		@apply block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500;
