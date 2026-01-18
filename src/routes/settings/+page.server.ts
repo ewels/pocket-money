@@ -5,7 +5,8 @@ import {
 	getFamilyMembers,
 	getActiveInviteCode,
 	generateInviteCode,
-	deleteInviteCode
+	deleteInviteCode,
+	getChildren
 } from '$lib/server/db';
 
 export const load: PageServerLoad = async ({ locals, platform }) => {
@@ -15,12 +16,13 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 
 	const db = platform?.env?.DB;
 	if (!db || !locals.user.family_id) {
-		return { familyMembers: [], activeInviteCode: null };
+		return { familyMembers: [], activeInviteCode: null, children: [] };
 	}
 
-	const [familyMembers, activeInviteCode] = await Promise.all([
+	const [familyMembers, activeInviteCode, children] = await Promise.all([
 		getFamilyMembers(db, locals.user.family_id),
-		getActiveInviteCode(db, locals.user.family_id)
+		getActiveInviteCode(db, locals.user.family_id),
+		getChildren(db, locals.user.family_id)
 	]);
 
 	return {
@@ -30,7 +32,8 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 					code: activeInviteCode.code,
 					expiresAt: activeInviteCode.expires_at
 				}
-			: null
+			: null,
+		children
 	};
 };
 

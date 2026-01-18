@@ -12,6 +12,12 @@ Pocket Money is a family pocket money tracking PWA built with:
 - **Tailwind CSS** (styling)
 - **Chart.js** (balance history charts)
 
+## Key URLs
+
+- **GitHub Repository**: https://github.com/ewels/pocket-money
+- **Documentation**: https://ewels.github.io/pocket-money/
+- **Author Website**: https://phil.ewels.co.uk
+
 ## Key Architecture Decisions
 
 ### Family System

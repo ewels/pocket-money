@@ -1,28 +1,11 @@
 <script lang="ts">
 	import ChildCard from '$lib/components/ChildCard.svelte';
-	import AddChildModal from '$lib/components/AddChildModal.svelte';
 
 	let { data } = $props();
-
-	let showAddChild = $state(false);
 </script>
 
 <div class="space-y-6">
-	<div class="flex items-center justify-between">
-		<h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
-		<button type="button" class="btn-primary" onclick={() => (showAddChild = true)}>
-			<svg
-				class="mr-2 h-5 w-5"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke-width="1.5"
-				stroke="currentColor"
-			>
-				<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-			</svg>
-			Add Child
-		</button>
-	</div>
+	<h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
 
 	{#if data.children.length === 0}
 		<div class="text-center py-12">
@@ -42,7 +25,7 @@
 			<h3 class="mt-2 text-sm font-semibold text-gray-900">No children</h3>
 			<p class="mt-1 text-sm text-gray-500">Get started by adding your first child.</p>
 			<div class="mt-6">
-				<button type="button" class="btn-primary" onclick={() => (showAddChild = true)}>
+				<a href="/settings" class="btn-secondary">
 					<svg
 						class="mr-2 h-5 w-5"
 						fill="none"
@@ -52,8 +35,8 @@
 					>
 						<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
 					</svg>
-					Add Child
-				</button>
+					Add Child in Settings
+				</a>
 			</div>
 		</div>
 	{:else}
@@ -64,5 +47,3 @@
 		</div>
 	{/if}
 </div>
-
-<AddChildModal bind:open={showAddChild} />
