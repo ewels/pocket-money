@@ -90,11 +90,10 @@ Full documentation is available at **[ewels.github.io/pocket-money](https://ewel
 
 - [Installation & Deployment](https://ewels.github.io/pocket-money/getting-started/installation/)
 - [User Guide](https://ewels.github.io/pocket-money/guide/)
-- [Contributing](https://ewels.github.io/pocket-money/contributing/)
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please see the [Contributing Guide](https://ewels.github.io/pocket-money/contributing/) for details.
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ## 📄 License
 
