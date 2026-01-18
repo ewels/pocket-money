@@ -1,32 +1,44 @@
-# Pocket Money
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/header.svg">
+    <source media="(prefers-color-scheme: light)" srcset="docs/assets/header.svg">
+    <img alt="Pocket Money" src="docs/assets/header.svg" width="500">
+  </picture>
+</p>
 
-A family pocket money tracking PWA built with SvelteKit, hosted on Cloudflare Pages with D1 database.
+<p align="center">
+  <em>A family-friendly pocket money tracker with saving goals and recurring allowances.</em>
+</p>
+
+<p align="center">
+  <a href="https://pocket-money.ewels.dev">Live Demo</a> •
+  <a href="https://pocket-money-docs.ewels.dev">Documentation</a> •
+  <a href="#-quick-start">Quick Start</a>
+</p>
+
+---
 
 ![Child Profile Screenshot](docs/assets/screenshots/child-profile-featured.png)
 
-## Features
+## ✨ Features
 
-- **Family System**: Invite family members to share access to children's accounts
-- Track pocket money for multiple children
-- Set saving targets with visual progress tracking
-- Recurring automatic payments (allowance)
-- Transaction history with parent attribution
-- Optional PIN protection (per-family)
-- Photo uploads for profiles (stored as base64)
-- Multi-currency support
-- Mobile-friendly PWA
+- **👨‍👩‍👧‍👦 Family Sharing** — Invite family members to share access to children's accounts
+- **🎯 Saving Targets** — Visual progress tracking toward savings goals with time estimates
+- **🔄 Recurring Payments** — Automatic allowance deposits on any schedule (daily, weekly, monthly)
+- **📊 Balance History** — Beautiful charts showing balance over time
+- **📝 Transaction History** — See who made each deposit or withdrawal
+- **🔐 PIN Protection** — Optional security for shared devices
+- **💱 Multi-Currency** — Support for 12 currencies
+- **📱 Mobile-Friendly** — Progressive Web App that works great on phones
 
-## Tech Stack
+## 🚀 Quick Start
 
-- **Framework**: SvelteKit with Cloudflare adapter
-- **Database**: Cloudflare D1 (SQLite)
-- **Hosting**: Cloudflare Pages
-- **Styling**: Tailwind CSS
-- **Charts**: Chart.js
+### Prerequisites
 
-## Quick Start
+- [Node.js](https://nodejs.org/) 20+
+- [Cloudflare account](https://dash.cloudflare.com/sign-up) (free tier works great)
 
-See [docs/installation.md](docs/installation.md) for detailed setup instructions.
+### Local Development
 
 ```bash
 # Clone and install
@@ -34,27 +46,56 @@ git clone https://github.com/ewels/pocket-money.git
 cd pocket-money
 npm install
 
-# Configure
+# Configure environment
 cp .dev.vars.example .dev.vars
-# Edit .dev.vars with your SESSION_SECRET
+# Edit .dev.vars and set SESSION_SECRET to a random string
 
-# Run locally
+# Set up database
+npm run db:migrate
+
+# Start dev server
 npm run dev
 ```
 
-## Documentation
+Then open [http://localhost:5173](http://localhost:5173) and register a new account.
 
-- [Installation & Deployment](docs/installation.md) - Setup for local development and production
-- [User Guide](docs/usage.md) - How to use the app
-- [Architecture](docs/architecture.md) - Technical overview
+### Production Deployment
 
-## Cloudflare Free Tier Limits
+See the [Installation Guide](https://pocket-money-docs.ewels.dev/getting-started/installation/) for full deployment instructions.
 
-These limits are more than sufficient for family use:
+## 🛠️ Tech Stack
 
-- **Pages**: Unlimited requests, 500 builds/month
-- **D1**: 5M reads/day, 100K writes/day
+| Component | Technology                                                      |
+| --------- | --------------------------------------------------------------- |
+| Framework | [SvelteKit 5](https://svelte.dev/) with runes                   |
+| Database  | [Cloudflare D1](https://developers.cloudflare.com/d1/) (SQLite) |
+| Hosting   | [Cloudflare Pages](https://pages.cloudflare.com/)               |
+| Styling   | [Tailwind CSS 4](https://tailwindcss.com/)                      |
+| Charts    | [Chart.js](https://www.chartjs.org/)                            |
 
-## License
+## 💰 Free Tier Friendly
 
-MIT
+Pocket Money is designed to run entirely within Cloudflare's generous free tier:
+
+| Service   | Free Allowance                       |
+| --------- | ------------------------------------ |
+| **Pages** | Unlimited requests, 500 builds/month |
+| **D1**    | 5M reads/day, 100K writes/day        |
+
+More than enough for family use!
+
+## 📖 Documentation
+
+Full documentation is available at **[pocket-money-docs.ewels.dev](https://pocket-money-docs.ewels.dev)**
+
+- [Installation & Deployment](https://pocket-money-docs.ewels.dev/getting-started/installation/)
+- [User Guide](https://pocket-money-docs.ewels.dev/guide/)
+- [Contributing](https://pocket-money-docs.ewels.dev/contributing/)
+
+## 🤝 Contributing
+
+Contributions are welcome! Please see the [Contributing Guide](https://pocket-money-docs.ewels.dev/contributing/) for details.
+
+## 📄 License
+
+MIT License — free to use, modify, and distribute.
