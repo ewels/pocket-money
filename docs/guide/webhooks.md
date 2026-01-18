@@ -11,6 +11,75 @@ Pocket Money can send HTTP notifications when events occur, allowing you to inte
 
 The webhook URL will receive POST requests with JSON data whenever events occur.
 
+## Webhook Secret and Signature Verification
+
+For security, Pocket Money can sign webhook payloads using HMAC-SHA256. This allows you to verify that webhooks genuinely came from Pocket Money and weren't sent by a malicious third party.
+
+### Setting Up a Webhook Secret
+
+1. After saving a webhook URL, click **Generate Secret** in the webhook settings
+2. Copy the generated secret and store it securely in your receiving application
+3. Use this secret to verify the `X-Webhook-Signature` header on incoming requests
+
+### Verifying the Signature
+
+When a webhook secret is configured, every webhook request includes an `X-Webhook-Signature` header with the format:
+
+```
+X-Webhook-Signature: sha256=<hex-encoded-signature>
+```
+
+The signature is an HMAC-SHA256 hash of the raw JSON request body, using your webhook secret as the key.
+
+#### Example Verification (Node.js)
+
+```javascript
+const crypto = require('crypto');
+
+function verifyWebhook(payload, signature, secret) {
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex');
+
+  return `sha256=${expectedSignature}` === signature;
+}
+
+// In your webhook handler:
+app.post('/webhook', (req, res) => {
+  const signature = req.headers['x-webhook-signature'];
+  const isValid = verifyWebhook(JSON.stringify(req.body), signature, process.env.WEBHOOK_SECRET);
+
+  if (!isValid) {
+    return res.status(401).send('Invalid signature');
+  }
+
+  // Process the webhook...
+});
+```
+
+#### Example Verification (Python)
+
+```python
+import hmac
+import hashlib
+
+def verify_webhook(payload: bytes, signature: str, secret: str) -> bool:
+    expected = hmac.new(
+        secret.encode(),
+        payload,
+        hashlib.sha256
+    ).hexdigest()
+    return f"sha256={expected}" == signature
+```
+
+### Regenerating the Secret
+
+If you believe your webhook secret has been compromised, you can regenerate it at any time from the settings page. After regenerating:
+
+1. Update the secret in your receiving application
+2. Old signatures will no longer be valid
+
 ## Event Types
 
 | Event                         | Description                        |
@@ -162,6 +231,7 @@ automation:
 
 - Use HTTPS for your webhook URL
 - Consider using a unique, hard-to-guess webhook ID
+- **Verify webhook signatures** using your webhook secret to ensure requests are from Pocket Money
 - If your Home Assistant instance is publicly accessible, consider adding authentication
 
 ## Testing Webhooks

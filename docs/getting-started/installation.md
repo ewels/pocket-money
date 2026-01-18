@@ -5,8 +5,6 @@ This guide covers setting up Pocket Money for local development.
 ## Prerequisites
 
 - Node.js 18+
-- Cloudflare account (free tier works)
-- Wrangler CLI (`npm install -g wrangler`)
 
 ## Clone and Install
 
@@ -44,28 +42,28 @@ Copy the wrangler config template:
 cp wrangler.toml.example wrangler.toml
 ```
 
-Create a D1 database:
-
-```bash
-wrangler d1 create pocket-money-db
-```
-
-This will output a database ID. Update `wrangler.toml` with your database ID:
+For local development, you can use a placeholder database ID. The local D1 emulator creates a SQLite database in `.wrangler/` automatically:
 
 ```toml
 [[d1_databases]]
 binding = "DB"
 database_name = "pocket-money-db"
-database_id = "your-database-id-here"
+database_id = "local-dev-placeholder"
 ```
+
+::: tip No Cloudflare Account Required
+Local development uses Wrangler's built-in D1 emulator, which stores data in a local SQLite database. You don't need a Cloudflare account until you're ready to deploy.
+:::
 
 ## Run Migrations
 
-Apply the database schema:
+Apply the database schema locally:
 
 ```bash
 npm run db:migrate
 ```
+
+This runs migrations against your local SQLite database (not Cloudflare).
 
 ## Start Development Server
 
@@ -77,4 +75,4 @@ The app will be available at `http://localhost:5173`.
 
 ## Next Steps
 
-Ready to deploy? See the [Deployment Guide](deployment.md).
+Ready to deploy? See the [Deployment Guide](deployment.md) for instructions on setting up Cloudflare Pages and creating a production D1 database.

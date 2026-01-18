@@ -36,6 +36,7 @@ export type Settings = {
 	pin_hash: string | null;
 	pin_timeout_minutes: number;
 	webhook_url: string | null;
+	webhook_secret: string | null;
 };
 
 export type Child = {
@@ -217,7 +218,8 @@ export async function getSettings(db: D1Database, familyId: string): Promise<Set
 			pin_enabled: 0,
 			pin_hash: null,
 			pin_timeout_minutes: 1,
-			webhook_url: null
+			webhook_url: null,
+			webhook_secret: null
 		};
 	}
 	return result;
@@ -231,7 +233,7 @@ export async function updateSettings(
 	const current = await getSettings(db, familyId);
 	await db
 		.prepare(
-			'UPDATE settings SET currency = ?, pin_enabled = ?, pin_hash = ?, pin_timeout_minutes = ?, webhook_url = ? WHERE family_id = ?'
+			'UPDATE settings SET currency = ?, pin_enabled = ?, pin_hash = ?, pin_timeout_minutes = ?, webhook_url = ?, webhook_secret = ? WHERE family_id = ?'
 		)
 		.bind(
 			settings.currency ?? current.currency,
@@ -239,6 +241,7 @@ export async function updateSettings(
 			settings.pin_hash !== undefined ? settings.pin_hash : current.pin_hash,
 			settings.pin_timeout_minutes ?? current.pin_timeout_minutes,
 			settings.webhook_url !== undefined ? settings.webhook_url : current.webhook_url,
+			settings.webhook_secret !== undefined ? settings.webhook_secret : current.webhook_secret,
 			familyId
 		)
 		.run();

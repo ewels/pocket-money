@@ -228,5 +228,27 @@ export const actions: Actions = {
 		await updateSettings(db, locals.user.family_id, { webhook_url: webhookUrl });
 
 		return { success: webhookUrl ? 'Webhook URL saved' : 'Webhook disabled' };
+	},
+
+	regenerateWebhookSecret: async ({ platform, locals }) => {
+		if (!locals.user?.family_id) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
+		const db = platform?.env?.DB;
+		if (!db) {
+			return fail(500, { error: 'Database not available' });
+		}
+
+		// Generate a secure random secret (32 bytes = 64 hex characters)
+		const bytes = new Uint8Array(32);
+		crypto.getRandomValues(bytes);
+		const secret = Array.from(bytes)
+			.map((b) => b.toString(16).padStart(2, '0'))
+			.join('');
+
+		await updateSettings(db, locals.user.family_id, { webhook_secret: secret });
+
+		return { success: 'Webhook secret regenerated' };
 	}
 };

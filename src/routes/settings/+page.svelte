@@ -8,7 +8,14 @@
 	let showPinModal = $state(false);
 	let pinAction = $state<'enable' | 'change' | 'disable'>('enable');
 	let copiedCode = $state(false);
+	let copiedSecret = $state(false);
 	let webhookLoading = $state(false);
+
+	function copyWebhookSecret(secret: string) {
+		navigator.clipboard.writeText(secret);
+		copiedSecret = true;
+		setTimeout(() => (copiedSecret = false), 2000);
+	}
 
 	function copyInviteCode(code: string) {
 		navigator.clipboard.writeText(code);
@@ -201,7 +208,12 @@
 		<h2 class="text-lg font-semibold text-gray-900 mb-4">Webhook</h2>
 		<p class="text-sm text-gray-500 mb-4">
 			Receive notifications when events occur (transactions, balance changes, etc). The webhook URL
-			will receive POST requests with JSON data.
+			will receive POST requests with JSON data. See the <a
+				href="https://ewels.github.io/pocket-money/guide/webhooks.html"
+				target="_blank"
+				rel="noopener noreferrer"
+				class="text-blue-600 hover:text-blue-800 underline">webhook documentation</a
+			> for payload examples.
 		</p>
 
 		<form
@@ -235,26 +247,88 @@
 		</form>
 
 		{#if data.settings?.webhook_url}
-			<div class="mt-4 p-3 bg-gray-50 rounded-lg">
-				<p class="text-sm font-medium text-gray-700 mb-2">Webhook Events</p>
-				<ul class="text-xs text-gray-600 space-y-1">
-					<li>
-						<code class="bg-gray-200 px-1 rounded">transaction.created</code> - New transaction
-					</li>
-					<li>
-						<code class="bg-gray-200 px-1 rounded">recurring_payment.processed</code> - Recurring payment
-						processed
-					</li>
-					<li>
-						<code class="bg-gray-200 px-1 rounded">child.created</code> - Child profile created
-					</li>
-					<li>
-						<code class="bg-gray-200 px-1 rounded">child.updated</code> - Child profile updated
-					</li>
-					<li>
-						<code class="bg-gray-200 px-1 rounded">child.deleted</code> - Child profile deleted
-					</li>
-				</ul>
+			<div class="mt-4 space-y-4">
+				<!-- Webhook Secret -->
+				<div class="p-3 bg-gray-50 rounded-lg">
+					<p class="text-sm font-medium text-gray-700 mb-2">Webhook Secret</p>
+					<p class="text-xs text-gray-500 mb-2">
+						Use this secret to verify that webhooks are from Pocket Money. The signature is sent in
+						the <code class="bg-gray-200 px-1 rounded">X-Webhook-Signature</code> header.
+					</p>
+					{#if data.settings.webhook_secret}
+						<div class="flex items-center gap-2">
+							<code class="flex-1 bg-gray-200 px-2 py-1 rounded text-sm font-mono break-all">
+								{data.settings.webhook_secret}
+							</code>
+							<button
+								type="button"
+								class="btn-secondary text-sm shrink-0"
+								onclick={() => copyWebhookSecret(data.settings?.webhook_secret ?? '')}
+							>
+								{copiedSecret ? 'Copied!' : 'Copy'}
+							</button>
+						</div>
+						<form
+							method="POST"
+							action="?/regenerateWebhookSecret"
+							use:enhance={() => {
+								webhookLoading = true;
+								return async ({ update }) => {
+									webhookLoading = false;
+									await update();
+								};
+							}}
+							class="mt-2"
+						>
+							<button
+								type="submit"
+								class="text-sm text-red-600 hover:text-red-800"
+								disabled={webhookLoading}
+							>
+								Regenerate Secret
+							</button>
+						</form>
+					{:else}
+						<form
+							method="POST"
+							action="?/regenerateWebhookSecret"
+							use:enhance={() => {
+								webhookLoading = true;
+								return async ({ update }) => {
+									webhookLoading = false;
+									await update();
+								};
+							}}
+						>
+							<button type="submit" class="btn-secondary text-sm" disabled={webhookLoading}>
+								{webhookLoading ? 'Generating...' : 'Generate Secret'}
+							</button>
+						</form>
+					{/if}
+				</div>
+
+				<!-- Webhook Events -->
+				<div class="p-3 bg-gray-50 rounded-lg">
+					<p class="text-sm font-medium text-gray-700 mb-2">Webhook Events</p>
+					<ul class="text-xs text-gray-600 space-y-1">
+						<li>
+							<code class="bg-gray-200 px-1 rounded">transaction.created</code> - New transaction
+						</li>
+						<li>
+							<code class="bg-gray-200 px-1 rounded">recurring_payment.processed</code> - Recurring payment
+							processed
+						</li>
+						<li>
+							<code class="bg-gray-200 px-1 rounded">child.created</code> - Child profile created
+						</li>
+						<li>
+							<code class="bg-gray-200 px-1 rounded">child.updated</code> - Child profile updated
+						</li>
+						<li>
+							<code class="bg-gray-200 px-1 rounded">child.deleted</code> - Child profile deleted
+						</li>
+					</ul>
+				</div>
 			</div>
 		{/if}
 	</div>
