@@ -6,15 +6,27 @@ Saving targets help children work toward financial goals with visual progress tr
 
 ## Creating a Target
 
+You can add a target from two places:
+
+**From the child's profile page:**
+
+1. Open the child's profile
+2. In the **Saving Targets** section, click **Add Target** (or **Add Saving Target** if no targets exist)
+3. Fill in the target details and click **Add Target**
+
+**From the child's settings:**
+
 1. Go to a child's settings (gear icon on their profile)
 2. In the **Saving Targets** section, click **Add Target**
-3. Enter the target name (e.g., "New Bike", "Video Game")
-4. Enter the target amount
-5. Optionally add:
-   - **Description** - Additional details about the item
-   - **Link** - URL to where the item can be purchased
-   - **Photo** - Upload an image of the item
-6. Click **Add Target**
+3. Fill in the target details and click **Add Target**
+
+**Target fields:**
+
+- **Name** - The target name (e.g., "New Bike", "Video Game")
+- **Amount** - The target amount to save
+- **Description** (optional) - Additional details about the item
+- **Link** (optional) - URL to where the item can be purchased
+- **Photo** (optional) - Upload an image of the item
 
 ## How Progress is Calculated
 

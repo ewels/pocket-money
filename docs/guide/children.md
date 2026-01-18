@@ -14,12 +14,21 @@
 Click on a child's card to view their profile:
 
 - **Balance** - Current total balance
-- **Balance History** - 30-day chart showing balance changes
-- **Saving Targets** - Progress toward savings goals
+- **Balance History** - Chart showing balance changes over time
+- **Saving Targets** - Progress toward savings goals (with quick-add button)
 - **Recent Transactions** - List of deposits and withdrawals
 - **Recurring Payments** - Active automatic payments
 
 ![Child Profile](../assets/screenshots/child-profile-with-transaction.png)
+
+### Balance History Time Range
+
+Use the buttons in the top-right of the Balance History chart to change the time range:
+
+- **1W** - Last 7 days
+- **1M** - Last 30 days (default)
+- **6M** - Last 6 months
+- **All** - All time since first transaction
 
 ## Adding Money
 
