@@ -11,6 +11,10 @@
 
 import { chromium, type Page } from '@playwright/test';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const BASE_URL = 'http://localhost:5173';
 const SCREENSHOT_DIR = path.join(__dirname, '../docs/assets/screenshots');
@@ -79,7 +83,7 @@ async function main() {
 
 		await page.fill('input[name="name"]', 'Emma');
 		await page.click('button[aria-label="Select purple"]');
-		await page.click('button:has-text("Add Child") >> nth=1');
+		await page.locator('.fixed.inset-0.z-50 form button[type="submit"]').click({ force: true });
 		await page.waitForTimeout(500);
 		await screenshot(page, 'dashboard');
 
@@ -96,11 +100,11 @@ async function main() {
 		// Add money
 		await page.click('button:has-text("Add Money")');
 		await page.waitForSelector('text=Add Money >> visible=true');
-		await page.fill('input[name="amount"]', '25');
-		await page.fill('input[name="description"]', 'Birthday money');
+		await page.fill('input#addAmount', '25');
+		await page.fill('input#addDescription', 'Birthday money');
 		await screenshot(page, 'add-money-modal');
 
-		await page.click('button:has-text("Add Money") >> nth=1');
+		await page.locator('.fixed.inset-0.z-50 form button[type="submit"]').click({ force: true });
 		await page.waitForTimeout(500);
 		await screenshot(page, 'child-profile-with-transaction');
 
@@ -109,7 +113,7 @@ async function main() {
 		// ============================================
 		console.log('\n5. Child Settings');
 
-		await page.click('a:has-text("Settings")');
+		await page.click('a.btn-secondary:has-text("Settings")');
 		await page.waitForURL(/\/config/);
 		await page.waitForLoadState('networkidle');
 		await screenshot(page, 'child-settings', true);
@@ -117,19 +121,19 @@ async function main() {
 		// Add saving target
 		await page.click('button:has-text("Add Target")');
 		await page.waitForSelector('text=Add Saving Target >> visible=true');
-		await page.fill('input[placeholder="e.g., New bike"]', 'New bicycle');
-		await page.fill('input[name="targetAmount"]', '150');
-		await page.click('button:has-text("Add Target") >> nth=1');
+		await page.fill('input#targetName', 'New bicycle');
+		await page.fill('input#targetAmount', '150');
+		await page.locator('.fixed.inset-0.z-50 form button[type="submit"]').click({ force: true });
 		await page.waitForTimeout(500);
 
 		// Add recurring payment
 		await page.click('button:has-text("Add Rule")');
 		await page.waitForSelector('text=Add Recurring Payment >> visible=true');
-		await page.fill('input[name="amount"]', '5');
-		await page.fill('input[placeholder="e.g., Weekly allowance"]', 'Weekly allowance');
+		await page.fill('input#recurringAmount', '5');
+		await page.fill('input#recurringDescription', 'Weekly allowance');
 		await screenshot(page, 'add-recurring-modal');
 
-		await page.click('button:has-text("Add Rule") >> nth=1');
+		await page.locator('.fixed.inset-0.z-50 form button[type="submit"]').click({ force: true });
 		await page.waitForTimeout(500);
 		await screenshot(page, 'child-settings-configured', true);
 

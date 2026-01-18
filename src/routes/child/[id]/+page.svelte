@@ -104,6 +104,40 @@
 		</button>
 	</div>
 
+	<!-- Saving Targets -->
+	<div class="card p-6">
+		<h2 class="text-lg font-semibold text-gray-900 mb-4">Saving Targets</h2>
+		{#if data.targets.length > 0}
+			{@const targetsWithAvailableBalance = data.targets.reduce(
+				(acc, target) => {
+					const availableBalance = Math.max(0, data.balance - acc.usedBalance);
+					acc.targets.push({ target, availableBalance });
+					acc.usedBalance += target.target_amount;
+					return acc;
+				},
+				{
+					targets: [] as Array<{ target: (typeof data.targets)[0]; availableBalance: number }>,
+					usedBalance: 0
+				}
+			).targets}
+			<div class="space-y-4">
+				{#each targetsWithAvailableBalance as { target, availableBalance } (target.id)}
+					<SavingTarget
+						{target}
+						currentBalance={availableBalance}
+						color={colorHex}
+						currency={data.settings?.currency ?? 'EUR'}
+					/>
+				{/each}
+			</div>
+		{:else}
+			<div class="text-center py-6">
+				<p class="text-gray-500 mb-4">No saving targets yet</p>
+				<a href="/child/{data.child.id}/config" class="btn-primary"> Add Saving Target </a>
+			</div>
+		{/if}
+	</div>
+
 	<!-- Balance History Chart -->
 	{#if data.balanceHistory.length > 0}
 		<div class="card p-6">
@@ -114,23 +148,6 @@
 					color={colorHex}
 					currency={data.settings?.currency ?? 'EUR'}
 				/>
-			</div>
-		</div>
-	{/if}
-
-	<!-- Saving Targets -->
-	{#if data.targets.length > 0}
-		<div class="card p-6">
-			<h2 class="text-lg font-semibold text-gray-900 mb-4">Saving Targets</h2>
-			<div class="space-y-4">
-				{#each data.targets as target (target.id)}
-					<SavingTarget
-						{target}
-						currentBalance={data.balance}
-						color={colorHex}
-						currency={data.settings?.currency ?? 'EUR'}
-					/>
-				{/each}
 			</div>
 		</div>
 	{/if}

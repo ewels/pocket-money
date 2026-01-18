@@ -28,7 +28,7 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 			return {
 				...child,
 				balance,
-				targets: targets.slice(0, 2)
+				targets: targets.slice(0, 1)
 			};
 		})
 	);

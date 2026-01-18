@@ -65,15 +65,16 @@ Codes for inviting users to join a family.
 
 Per-family application settings.
 
-| Column                | Type    | Default | Description                 |
-| --------------------- | ------- | ------- | --------------------------- |
-| `id`                  | INTEGER | Auto    | Primary key                 |
-| `family_id`           | TEXT    |         | Foreign key → families      |
-| `currency`            | TEXT    | 'EUR'   | Display currency code       |
-| `pin_enabled`         | INTEGER | 0       | PIN protection enabled      |
-| `pin_hash`            | TEXT    | NULL    | bcrypt hash of PIN          |
-| `pin_timeout_minutes` | INTEGER | 1       | Minutes before PIN required |
-| `webhook_url`         | TEXT    | NULL    | URL for event notifications |
+| Column                | Type    | Default | Description                        |
+| --------------------- | ------- | ------- | ---------------------------------- |
+| `id`                  | INTEGER | Auto    | Primary key                        |
+| `family_id`           | TEXT    |         | Foreign key → families             |
+| `currency`            | TEXT    | 'EUR'   | Display currency code              |
+| `pin_enabled`         | INTEGER | 0       | PIN protection enabled             |
+| `pin_hash`            | TEXT    | NULL    | bcrypt hash of PIN                 |
+| `pin_timeout_minutes` | INTEGER | 1       | Minutes before PIN required        |
+| `webhook_url`         | TEXT    | NULL    | URL for event notifications        |
+| `webhook_secret`      | TEXT    | NULL    | Secret for HMAC signature (40 hex) |
 
 ### children
 
@@ -94,14 +95,17 @@ Child profiles.
 
 Savings goals for children.
 
-| Column          | Type    | Description            |
-| --------------- | ------- | ---------------------- |
-| `id`            | TEXT    | Primary key (UUID)     |
-| `child_id`      | TEXT    | Foreign key → children |
-| `name`          | TEXT    | Target name            |
-| `target_amount` | REAL    | Goal amount            |
-| `sort_order`    | INTEGER | Display order          |
-| `created_at`    | INTEGER | Unix timestamp         |
+| Column          | Type    | Description                     |
+| --------------- | ------- | ------------------------------- |
+| `id`            | TEXT    | Primary key (UUID)              |
+| `child_id`      | TEXT    | Foreign key → children          |
+| `name`          | TEXT    | Target name                     |
+| `target_amount` | REAL    | Goal amount                     |
+| `sort_order`    | INTEGER | Display order (for stacking)    |
+| `photo_data`    | TEXT    | Base64 encoded image (nullable) |
+| `description`   | TEXT    | Target description (nullable)   |
+| `link`          | TEXT    | URL to purchase item (nullable) |
+| `created_at`    | INTEGER | Unix timestamp                  |
 
 ### recurring_rules
 
@@ -150,12 +154,14 @@ User authentication sessions.
 
 Migrations are stored in `migrations/` and run in order:
 
-| File                  | Description           |
-| --------------------- | --------------------- |
-| `0001_initial.sql`    | Core tables           |
-| `0002_photo_data.sql` | Photo storage columns |
-| `0003_families.sql`   | Family system tables  |
-| `0004_webhooks.sql`   | Webhook URL setting   |
+| File                            | Description                             |
+| ------------------------------- | --------------------------------------- |
+| `0001_initial.sql`              | Core tables                             |
+| `0002_photo_data.sql`           | Photo storage columns                   |
+| `0003_families.sql`             | Family system tables                    |
+| `0004_webhooks.sql`             | Webhook URL setting                     |
+| `0005_webhook_secret.sql`       | Webhook secret for HMAC signatures      |
+| `0006_saving_target_fields.sql` | Target photo, description, link columns |
 
 ### Running Migrations
 
@@ -171,6 +177,9 @@ Production:
 wrangler d1 execute pocket-money-db --remote --file=./migrations/0001_initial.sql
 wrangler d1 execute pocket-money-db --remote --file=./migrations/0002_photo_data.sql
 wrangler d1 execute pocket-money-db --remote --file=./migrations/0003_families.sql
+wrangler d1 execute pocket-money-db --remote --file=./migrations/0004_webhooks.sql
+wrangler d1 execute pocket-money-db --remote --file=./migrations/0005_webhook_secret.sql
+wrangler d1 execute pocket-money-db --remote --file=./migrations/0006_saving_target_fields.sql
 ```
 
 ## Admin Operations

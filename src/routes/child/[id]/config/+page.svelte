@@ -13,6 +13,117 @@
 	let showAddTarget = $state(false);
 	let showAddRecurring = $state(false);
 	let editingTarget = $state<string | null>(null);
+
+	// Drag and drop state
+	let draggedTargetId = $state<string | null>(null);
+	let dragOverTargetId = $state<string | null>(null);
+	// eslint-disable-next-line svelte/prefer-writable-derived -- need local state for optimistic drag updates
+	let targetOrder = $state<string[]>(data.targets.map((t) => t.id));
+
+	// Reset order when data changes
+	$effect(() => {
+		targetOrder = data.targets.map((t) => t.id);
+	});
+
+	function handleDragStart(e: DragEvent, targetId: string) {
+		draggedTargetId = targetId;
+		if (e.dataTransfer) {
+			e.dataTransfer.effectAllowed = 'move';
+			e.dataTransfer.setData('text/plain', targetId);
+		}
+	}
+
+	function handleDragOver(e: DragEvent, targetId: string) {
+		e.preventDefault();
+		if (draggedTargetId && draggedTargetId !== targetId) {
+			dragOverTargetId = targetId;
+		}
+	}
+
+	function handleDragLeave() {
+		dragOverTargetId = null;
+	}
+
+	function handleDrop(e: DragEvent, targetId: string) {
+		e.preventDefault();
+		if (!draggedTargetId || draggedTargetId === targetId) return;
+
+		const fromIndex = targetOrder.indexOf(draggedTargetId);
+		const toIndex = targetOrder.indexOf(targetId);
+
+		if (fromIndex !== -1 && toIndex !== -1) {
+			const newOrder = [...targetOrder];
+			newOrder.splice(fromIndex, 1);
+			newOrder.splice(toIndex, 0, draggedTargetId);
+			targetOrder = newOrder;
+
+			// Submit reorder
+			const formData = new FormData();
+			formData.set('order', JSON.stringify(newOrder));
+			fetch('?/reorderTargets', {
+				method: 'POST',
+				body: formData
+			});
+		}
+
+		draggedTargetId = null;
+		dragOverTargetId = null;
+	}
+
+	function handleDragEnd() {
+		draggedTargetId = null;
+		dragOverTargetId = null;
+	}
+
+	// Touch drag support
+	let touchTargetId = $state<string | null>(null);
+
+	function handleTouchStart(_e: TouchEvent, targetId: string) {
+		touchTargetId = targetId;
+	}
+
+	function handleTouchMove(e: TouchEvent) {
+		if (!touchTargetId) return;
+		const touch = e.touches[0];
+		const element = document.elementFromPoint(touch.clientX, touch.clientY);
+		const targetEl = element?.closest('[data-target-id]') as HTMLElement | null;
+		if (targetEl) {
+			const overId = targetEl.dataset.targetId;
+			if (overId && overId !== touchTargetId) {
+				dragOverTargetId = overId;
+			}
+		}
+	}
+
+	function handleTouchEnd() {
+		if (touchTargetId && dragOverTargetId && touchTargetId !== dragOverTargetId) {
+			const fromIndex = targetOrder.indexOf(touchTargetId);
+			const toIndex = targetOrder.indexOf(dragOverTargetId);
+
+			if (fromIndex !== -1 && toIndex !== -1) {
+				const newOrder = [...targetOrder];
+				newOrder.splice(fromIndex, 1);
+				newOrder.splice(toIndex, 0, touchTargetId);
+				targetOrder = newOrder;
+
+				const formData = new FormData();
+				formData.set('order', JSON.stringify(newOrder));
+				fetch('?/reorderTargets', {
+					method: 'POST',
+					body: formData
+				});
+			}
+		}
+		touchTargetId = null;
+		dragOverTargetId = null;
+	}
+
+	// Get ordered targets based on current order
+	const orderedTargets = $derived(
+		targetOrder
+			.map((id) => data.targets.find((t) => t.id === id))
+			.filter(Boolean) as typeof data.targets
+	);
 </script>
 
 <div class="space-y-6">
@@ -104,19 +215,58 @@
 			</button>
 		</div>
 
-		{#if data.targets.length === 0}
+		{#if orderedTargets.length === 0}
 			<p class="text-gray-500 text-center py-4">No saving targets yet</p>
 		{:else}
-			<div class="space-y-3">
-				{#each data.targets as target (target.id)}
-					<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-						<div>
-							<p class="font-medium text-gray-900">{target.name}</p>
+			<p class="text-xs text-gray-400 mb-2">Drag to reorder (first target is filled first)</p>
+			<div class="space-y-2">
+				{#each orderedTargets as target (target.id)}
+					<div
+						class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg transition-all {dragOverTargetId ===
+						target.id
+							? 'ring-2 ring-blue-400 bg-blue-50'
+							: ''} {draggedTargetId === target.id ? 'opacity-50' : ''}"
+						draggable="true"
+						data-target-id={target.id}
+						ondragstart={(e) => handleDragStart(e, target.id)}
+						ondragover={(e) => handleDragOver(e, target.id)}
+						ondragleave={handleDragLeave}
+						ondrop={(e) => handleDrop(e, target.id)}
+						ondragend={handleDragEnd}
+						ontouchstart={(e) => handleTouchStart(e, target.id)}
+						ontouchmove={handleTouchMove}
+						ontouchend={handleTouchEnd}
+					>
+						<!-- Drag handle -->
+						<div class="cursor-grab text-gray-400 hover:text-gray-600 touch-none">
+							<svg
+								class="h-5 w-5"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke-width="1.5"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+								/>
+							</svg>
+						</div>
+						{#if target.photo_data}
+							<img
+								src={target.photo_data}
+								alt={target.name}
+								class="w-10 h-10 rounded object-cover shrink-0"
+							/>
+						{/if}
+						<div class="flex-1 min-w-0">
+							<p class="font-medium text-gray-900 truncate">{target.name}</p>
 							<p class="text-sm text-gray-500">
 								Target: {formatMoney(target.target_amount, data.settings?.currency ?? 'EUR')}
 							</p>
 						</div>
-						<div class="flex gap-2">
+						<div class="flex gap-1 shrink-0">
 							<button
 								type="button"
 								class="p-2 text-gray-400 hover:text-gray-600"
@@ -306,7 +456,9 @@
 				onclick={() => (showAddTarget = false)}
 				aria-label="Close"
 			></button>
-			<div class="relative w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+			<div
+				class="relative w-full max-w-md rounded-xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto"
+			>
 				<h2 class="text-lg font-semibold text-gray-900">Add Saving Target</h2>
 				<form
 					method="POST"
@@ -342,6 +494,31 @@
 							class="input"
 							placeholder="0.00"
 						/>
+					</div>
+					<div>
+						<label for="targetDescription" class="label">Description (optional)</label>
+						<input
+							id="targetDescription"
+							name="description"
+							type="text"
+							class="input"
+							placeholder="e.g., Blue mountain bike from the store"
+						/>
+					</div>
+					<div>
+						<label for="targetLink" class="label">Link (optional)</label>
+						<input
+							id="targetLink"
+							name="link"
+							type="url"
+							class="input"
+							placeholder="https://example.com/product"
+						/>
+						<p class="mt-1 text-xs text-gray-500">Link to where the item can be purchased</p>
+					</div>
+					<div>
+						<label class="label">Photo (optional)</label>
+						<PhotoUpload name="photo" />
 					</div>
 					<div class="flex justify-end gap-3 pt-4">
 						<button type="button" class="btn-secondary" onclick={() => (showAddTarget = false)}
@@ -434,7 +611,9 @@
 					onclick={() => (editingTarget = null)}
 					aria-label="Close"
 				></button>
-				<div class="relative w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+				<div
+					class="relative w-full max-w-md rounded-xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto"
+				>
 					<h2 class="text-lg font-semibold text-gray-900">Edit Saving Target</h2>
 					<form
 						method="POST"
@@ -471,6 +650,43 @@
 								class="input"
 								value={target.target_amount}
 							/>
+						</div>
+						<div>
+							<label for="editTargetDescription" class="label">Description (optional)</label>
+							<input
+								id="editTargetDescription"
+								name="description"
+								type="text"
+								class="input"
+								value={target.description ?? ''}
+								placeholder="e.g., Blue mountain bike from the store"
+							/>
+						</div>
+						<div>
+							<label for="editTargetLink" class="label">Link (optional)</label>
+							<input
+								id="editTargetLink"
+								name="link"
+								type="url"
+								class="input"
+								value={target.link ?? ''}
+								placeholder="https://example.com/product"
+							/>
+							<p class="mt-1 text-xs text-gray-500">Link to where the item can be purchased</p>
+						</div>
+						<div>
+							<label class="label">Photo (optional)</label>
+							{#if target.photo_data}
+								<div class="mb-2">
+									<img
+										src={target.photo_data}
+										alt={target.name}
+										class="w-20 h-20 rounded-lg object-cover"
+									/>
+									<p class="text-xs text-gray-500 mt-1">Current photo (upload new to replace)</p>
+								</div>
+							{/if}
+							<PhotoUpload name="photo" />
 						</div>
 						<div class="flex justify-end gap-3 pt-4">
 							<button type="button" class="btn-secondary" onclick={() => (editingTarget = null)}

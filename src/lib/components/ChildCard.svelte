@@ -20,6 +20,7 @@
 	let { child, currency }: { child: Child; currency: string } = $props();
 
 	const colorClass = `bg-child-${child.color}` as const;
+	const topTarget = child.targets[0];
 </script>
 
 <a href="/child/{child.id}" class="card hover:shadow-md transition-shadow">
@@ -29,11 +30,11 @@
 				<img
 					src={child.photo_data}
 					alt={child.name}
-					class="h-16 w-16 rounded-full object-cover ring-4 ring-child-{child.color}/20"
+					class="h-16 w-16 rounded-full object-cover ring-4 ring-child-{child.color}/20 shrink-0"
 				/>
 			{:else}
 				<div
-					class="flex h-16 w-16 items-center justify-center rounded-full text-2xl font-bold text-white {colorClass}"
+					class="flex h-16 w-16 items-center justify-center rounded-full text-2xl font-bold text-white shrink-0 {colorClass}"
 				>
 					{getInitials(child.name)}
 				</div>
@@ -44,24 +45,19 @@
 					{formatMoney(child.balance, currency)}
 				</p>
 			</div>
-		</div>
-
-		{#if child.targets.length > 0}
-			<div class="mt-4 flex justify-center gap-6">
-				{#each child.targets as target (target.id)}
-					<div class="text-center">
-						<div class="w-16 h-16">
-							<DoughnutChart
-								progress={calculateProgress(child.balance, target.target_amount)}
-								color={colorHexMap[child.color as ChildColor] ?? colorHexMap.blue}
-							/>
-						</div>
-						<p class="mt-1 text-xs text-gray-500 truncate max-w-[64px]" title={target.name}>
-							{target.name}
-						</p>
+			{#if topTarget}
+				<div class="text-center shrink-0">
+					<div class="w-12 h-12">
+						<DoughnutChart
+							progress={calculateProgress(child.balance, topTarget.target_amount)}
+							color={colorHexMap[child.color as ChildColor] ?? colorHexMap.blue}
+						/>
 					</div>
-				{/each}
-			</div>
-		{/if}
+					<p class="mt-1 text-xs text-gray-500 truncate max-w-[48px]" title={topTarget.name}>
+						{topTarget.name}
+					</p>
+				</div>
+			{/if}
+		</div>
 	</div>
 </a>

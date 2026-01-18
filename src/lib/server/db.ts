@@ -56,6 +56,9 @@ export type SavingTarget = {
 	name: string;
 	target_amount: number;
 	sort_order: number;
+	photo_data: string | null;
+	description: string | null;
+	link: string | null;
 	created_at: number;
 };
 
@@ -383,9 +386,18 @@ export async function createSavingTarget(
 ): Promise<void> {
 	await db
 		.prepare(
-			'INSERT INTO saving_targets (id, child_id, name, target_amount, sort_order) VALUES (?, ?, ?, ?, ?)'
+			'INSERT INTO saving_targets (id, child_id, name, target_amount, sort_order, photo_data, description, link) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
 		)
-		.bind(target.id, target.child_id, target.name, target.target_amount, target.sort_order)
+		.bind(
+			target.id,
+			target.child_id,
+			target.name,
+			target.target_amount,
+			target.sort_order,
+			target.photo_data,
+			target.description,
+			target.link
+		)
 		.run();
 }
 
@@ -400,11 +412,16 @@ export async function updateSavingTarget(
 		.first<SavingTarget>();
 	if (!target) return;
 	await db
-		.prepare('UPDATE saving_targets SET name = ?, target_amount = ?, sort_order = ? WHERE id = ?')
+		.prepare(
+			'UPDATE saving_targets SET name = ?, target_amount = ?, sort_order = ?, photo_data = ?, description = ?, link = ? WHERE id = ?'
+		)
 		.bind(
 			updates.name ?? target.name,
 			updates.target_amount ?? target.target_amount,
 			updates.sort_order ?? target.sort_order,
+			updates.photo_data !== undefined ? updates.photo_data : target.photo_data,
+			updates.description !== undefined ? updates.description : target.description,
+			updates.link !== undefined ? updates.link : target.link,
 			id
 		)
 		.run();
