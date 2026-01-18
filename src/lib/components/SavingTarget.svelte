@@ -64,15 +64,15 @@
 			class="w-16 h-16 rounded-lg object-cover shrink-0"
 		/>
 	{/if}
-	<div class="flex-1 space-y-2">
-		<div class="flex items-center justify-between gap-4">
-			<div class="flex items-baseline gap-2 min-w-0">
+	<div class="flex-1 min-w-0 space-y-2">
+		<div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
+			<div class="min-w-0">
 				{#if target.link}
 					<a
 						href={target.link}
 						target="_blank"
 						rel="noopener noreferrer"
-						class="font-medium text-gray-900 hover:underline truncate"
+						class="font-medium text-gray-900 hover:underline truncate block"
 					>
 						{target.name}
 						<svg
@@ -90,20 +90,23 @@
 						</svg>
 					</a>
 				{:else}
-					<span class="font-medium text-gray-900 truncate">{target.name}</span>
+					<span class="font-medium text-gray-900 truncate block">{target.name}</span>
 				{/if}
-				<span class="text-sm text-gray-500 whitespace-nowrap">
+			</div>
+			<div
+				class="text-sm text-gray-500 whitespace-nowrap flex items-baseline gap-2 sm:gap-0 sm:flex-col sm:items-end"
+			>
+				<span>
 					{formatMoney(Math.min(currentBalance, target.target_amount), currency)} / {formatMoney(
 						target.target_amount,
 						currency
 					)}
 				</span>
-			</div>
-			<div class="text-sm text-gray-500 whitespace-nowrap text-right">
 				{#if remaining > 0}
-					<span>{Math.round(progress)}%</span>
-					<span class="text-gray-400 mx-1">·</span>
-					<span>{formatMoney(remaining, currency)} to go</span>
+					<span class="hidden sm:inline text-gray-400 mx-1">·</span>
+					<span class="hidden sm:inline"
+						>{Math.round(progress)}% · {formatMoney(remaining, currency)} to go</span
+					>
 				{:else}
 					<span class="font-medium" style="color: {color}">Goal reached!</span>
 				{/if}
