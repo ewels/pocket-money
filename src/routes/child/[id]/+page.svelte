@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { goto } from '$app/navigation';
 	import { getInitials, colorHexMap, type ChildColor } from '$lib/utils';
 	import { formatMoney } from '$lib/currencies';
 	import LineChart from '$lib/components/LineChart.svelte';
@@ -16,6 +17,24 @@
 
 	const color = data.child.color as ChildColor;
 	const colorHex = colorHexMap[color] ?? colorHexMap.blue;
+
+	// Date range options for balance history
+	const historyRanges = [
+		{ days: 7, label: '1W' },
+		{ days: 30, label: '1M' },
+		{ days: 180, label: '6M' },
+		{ days: 0, label: 'All' }
+	];
+
+	function setHistoryRange(days: number) {
+		const url = new URL(window.location.href);
+		if (days === 30) {
+			url.searchParams.delete('historyDays');
+		} else {
+			url.searchParams.set('historyDays', days.toString());
+		}
+		goto(url.toString(), { keepFocus: true, noScroll: true });
+	}
 </script>
 
 <div class="space-y-6">
@@ -152,7 +171,22 @@
 	<!-- Balance History Chart -->
 	{#if data.balanceHistory.length > 0}
 		<div class="card p-6">
-			<h2 class="text-lg font-semibold text-gray-900 mb-4">Balance History</h2>
+			<div class="flex items-center justify-between mb-4">
+				<h2 class="text-lg font-semibold text-gray-900">Balance History</h2>
+				<div class="flex gap-1">
+					{#each historyRanges as range (range.days)}
+						<button
+							type="button"
+							class="px-2 py-1 text-xs rounded {data.historyDays === range.days
+								? 'bg-blue-100 text-blue-700 font-medium'
+								: 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
+							onclick={() => setHistoryRange(range.days)}
+						>
+							{range.label}
+						</button>
+					{/each}
+				</div>
+			</div>
 			<div class="h-48">
 				<LineChart
 					data={data.balanceHistory}

@@ -563,7 +563,31 @@ export async function getBalanceHistory(
 	childId: string,
 	days = 30
 ): Promise<{ date: string; balance: number }[]> {
-	const startTime = Math.floor(Date.now() / 1000) - days * 24 * 60 * 60;
+	// days=0 means "all time" - get first transaction date
+	const isAllTime = days === 0;
+
+	let startTime: number;
+	let actualDays: number;
+
+	if (isAllTime) {
+		// Get the first transaction date for this child
+		const firstTransaction = await db
+			.prepare('SELECT MIN(created_at) as first_date FROM transactions WHERE child_id = ?')
+			.bind(childId)
+			.first<{ first_date: number | null }>();
+
+		if (!firstTransaction?.first_date) {
+			// No transactions, return empty history
+			return [];
+		}
+
+		startTime = firstTransaction.first_date;
+		const now = Math.floor(Date.now() / 1000);
+		actualDays = Math.ceil((now - startTime) / (24 * 60 * 60));
+	} else {
+		startTime = Math.floor(Date.now() / 1000) - days * 24 * 60 * 60;
+		actualDays = days;
+	}
 
 	const result = await db
 		.prepare(
@@ -596,7 +620,7 @@ export async function getBalanceHistory(
 	const now = new Date();
 	let currentBalance = startBalance;
 
-	for (let i = days; i >= 0; i--) {
+	for (let i = actualDays; i >= 0; i--) {
 		const date = new Date(now);
 		date.setDate(date.getDate() - i);
 		const dateStr = date.toISOString().split('T')[0];

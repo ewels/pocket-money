@@ -13,7 +13,7 @@ import {
 } from '$lib/server/db';
 import { sendWebhook } from '$lib/server/webhook';
 
-export const load: PageServerLoad = async ({ params, locals, platform }) => {
+export const load: PageServerLoad = async ({ params, locals, platform, url }) => {
 	if (!locals.user) {
 		throw redirect(303, '/login');
 	}
@@ -33,12 +33,17 @@ export const load: PageServerLoad = async ({ params, locals, platform }) => {
 		throw error(403, 'Access denied');
 	}
 
+	// Parse history days from URL param (default 30, 0 means all time)
+	const historyDaysParam = url.searchParams.get('historyDays');
+	const historyDays = historyDaysParam ? parseInt(historyDaysParam, 10) : 30;
+	const validHistoryDays = [0, 7, 30, 180].includes(historyDays) ? historyDays : 30;
+
 	const [balance, targets, recurringRules, transactions, balanceHistory] = await Promise.all([
 		getChildBalance(db, child.id),
 		getSavingTargets(db, child.id),
 		getRecurringRules(db, child.id),
 		getTransactions(db, child.id),
-		getBalanceHistory(db, child.id, 30)
+		getBalanceHistory(db, child.id, validHistoryDays)
 	]);
 
 	return {
@@ -47,7 +52,8 @@ export const load: PageServerLoad = async ({ params, locals, platform }) => {
 		targets,
 		recurringRules,
 		transactions,
-		balanceHistory
+		balanceHistory,
+		historyDays: validHistoryDays
 	};
 };
 
