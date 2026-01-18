@@ -52,23 +52,34 @@ Set up the following secrets in your GitHub repository (**Settings** → **Secre
 
 | Secret                   | Description                                                                                          |
 | ------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `CLOUDFLARE_API_TOKEN`   | API token with "Edit Cloudflare Pages" permissions. Create one at [Cloudflare Dashboard → API Tokens](https://dash.cloudflare.com/profile/api-tokens). |
+| `CLOUDFLARE_API_TOKEN`   | API token with **Cloudflare Pages: Edit** and **D1: Edit** permissions. See below for setup instructions. |
 | `CLOUDFLARE_ACCOUNT_ID`  | Your Cloudflare account ID. Find it on any Cloudflare dashboard page in the right sidebar.          |
 
 #### Creating the API Token
 
 1. Go to [Cloudflare Dashboard → API Tokens](https://dash.cloudflare.com/profile/api-tokens)
 2. Click **Create Token**
-3. Select **Edit Cloudflare Workers** template (this includes Pages permissions)
-4. Under **Account Resources**, select your account
-5. Under **Zone Resources**, select "All zones" or your specific zone
-6. Click **Continue to summary** → **Create Token**
-7. Copy the token immediately (it won't be shown again)
+3. Click **Create Custom Token**
+4. Give the token a name (e.g., "Pocket Money Deploy")
+5. Add the following **Permissions**:
+   - **Account** | **Cloudflare Pages** | **Edit**
+   - **Account** | **D1** | **Edit** (required for database migrations)
+6. Under **Account Resources**, select your account
+7. Under **Zone Resources**, select "All zones" or your specific zone (if using a custom domain)
+8. Click **Continue to summary** → **Create Token**
+9. Copy the token immediately (it won't be shown again)
+
+::: warning D1 Permission Required
+The **D1 Edit** permission is required for the deployment workflow to run database migrations automatically. Without this permission, migrations will fail silently and new database schema changes won't be applied.
+:::
 
 #### How It Works
 
 1. On every push to `main`, the CI workflow runs (lint, type check, tests, build)
-2. If all checks pass, the deploy workflow builds the app and deploys to Cloudflare Pages
+2. If all checks pass, the deploy workflow:
+   - Builds the app
+   - Runs any pending database migrations
+   - Deploys to Cloudflare Pages
 3. The deployment URL will be shown in the Actions log
 
 ## Set Up Recurring Payments
