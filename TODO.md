@@ -1,4 +1,0 @@
-- [ ] "log out" doesn't do anything
-- [ ] Add option to change email and password from profile page
-- [ ] GitHub actions to deploy to cloudflare, so that we know the state on github is always fresh
-- [ ] Ability to configure web hooks, instructions for connecting to Home Assistant (eg. for phone notifications of activity)
