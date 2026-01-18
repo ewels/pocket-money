@@ -236,11 +236,14 @@ export const actions: Actions = {
 
 		try {
 			const order = JSON.parse(orderJson) as string[];
+			console.log('Reordering targets:', order);
 			await Promise.all(
 				order.map((targetId, index) => updateSavingTarget(db, targetId, { sort_order: index }))
 			);
+			console.log('Targets reordered successfully');
 			return { success: 'Targets reordered' };
-		} catch {
+		} catch (e) {
+			console.error('Failed to reorder targets:', e);
 			return fail(400, { error: 'Invalid order data' });
 		}
 	},
