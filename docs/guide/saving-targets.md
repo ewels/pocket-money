@@ -23,7 +23,6 @@ For example:
 - Progress: 50%
 
 !!! note
-
     Progress is based on total balance, not money set aside specifically for that target. A child saving for multiple things will see progress on all targets as their balance grows.
 
 ## Editing a Target

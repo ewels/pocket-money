@@ -26,7 +26,6 @@ Change the display currency for all amounts in the app.
 | CZK  | Czech Koruna      |
 
 !!! note
-
     Currency is a display setting only. It doesn't convert values between currencies.
 
 ### Changing Currency
@@ -75,7 +74,6 @@ After this time of inactivity, the app will require PIN entry before showing any
 4. Click **Disable PIN**
 
 !!! warning
-
     PIN settings are shared across all family members. Changing or disabling the PIN affects everyone.
 
 ## Family Management

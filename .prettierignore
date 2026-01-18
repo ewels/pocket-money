@@ -14,5 +14,8 @@ build
 # Documentation site output
 site
 
+# Documentation source (admonitions break with Prettier)
+docs
+
 # Playwright
 .playwright-mcp
