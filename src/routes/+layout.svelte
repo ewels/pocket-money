@@ -25,7 +25,10 @@
 				<div class="flex h-16 justify-between">
 					<div class="flex">
 						<div class="flex flex-shrink-0 items-center">
-							<a href="/" class="text-xl font-bold text-blue-600">Pocket Money</a>
+							<a href="/" class="flex items-center gap-2 text-xl font-bold text-blue-600">
+								<img src="/icons/icon.svg" alt="" class="h-8 w-8" />
+								<span>Pocket Money</span>
+							</a>
 						</div>
 						<div class="hidden sm:ml-6 sm:flex sm:space-x-8">
 							{#each navItems as item}
