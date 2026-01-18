@@ -1,0 +1,3 @@
+- [ ] Better icons for add money / withdraw
+- [ ] Ability to configure web hooks, instructions for connecting to Home Assistant (eg. for phone notifications of activity)
+- [ ] GitHub actions to deploy to cloudflare, so that we know the state on github is always fresh

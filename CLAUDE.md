@@ -1,6 +1,6 @@
-# Claude Development Guide
+# CLAUDE.md
 
-This document helps Claude (and other AI assistants) understand the Pocket Money codebase for future development work.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
