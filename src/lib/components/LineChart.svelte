@@ -53,9 +53,10 @@
 						backgroundColor: gradient,
 						borderWidth: 2,
 						fill: true,
-						tension: 0.3,
-						pointRadius: 0,
-						pointHoverRadius: 4,
+						tension: 0,
+						pointRadius: 3,
+						pointBackgroundColor: color,
+						pointHoverRadius: 5,
 						pointHoverBackgroundColor: color
 					}
 				]

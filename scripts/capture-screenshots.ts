@@ -156,6 +156,8 @@ async function main() {
 		await page.click('a[aria-label="Back to child profile"]');
 		await page.waitForURL(/\/child\/[^/]+$/);
 		await page.waitForLoadState('networkidle');
+		// Wait for chart animation to complete
+		await page.waitForTimeout(1500);
 		await screenshot(page, 'child-profile-featured');
 
 		// ============================================
