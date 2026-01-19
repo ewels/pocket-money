@@ -19,7 +19,7 @@ const __dirname = path.dirname(__filename);
 const BASE_URL = 'http://localhost:5173';
 const SCREENSHOT_DIR = path.join(__dirname, '../docs/assets/screenshots');
 
-const VIEWPORT = { width: 1280, height: 800 };
+const VIEWPORT = { width: 900, height: 800 };
 
 // Test user credentials
 const TEST_USER = {
@@ -76,7 +76,12 @@ async function main() {
 
 		await screenshot(page, 'dashboard-empty');
 
-		// Add a child
+		// Navigate to Settings to add a child
+		await page.click('a:has-text("Add Child in Settings")');
+		await page.waitForURL(`${BASE_URL}/settings`);
+		await page.waitForLoadState('networkidle');
+
+		// Add a child from Settings page
 		await page.click('button:has-text("Add Child")');
 		await page.waitForSelector('text=Add Child >> visible=true');
 		await screenshot(page, 'add-child-modal');
@@ -85,6 +90,11 @@ async function main() {
 		await page.click('button[aria-label="Select purple"]');
 		await page.locator('.fixed.inset-0.z-50 form button[type="submit"]').click({ force: true });
 		await page.waitForTimeout(500);
+
+		// Go back to dashboard to capture with child
+		await page.click('a:has-text("Dashboard")');
+		await page.waitForURL(`${BASE_URL}/`);
+		await page.waitForLoadState('networkidle');
 		await screenshot(page, 'dashboard');
 
 		// ============================================
@@ -143,7 +153,7 @@ async function main() {
 		await screenshot(page, 'child-settings-configured', true);
 
 		// Go back to child profile to capture featured screenshot with all features
-		await page.click('a:has-text("Back to child profile")');
+		await page.click('a[aria-label="Back to child profile"]');
 		await page.waitForURL(/\/child\/[^/]+$/);
 		await page.waitForLoadState('networkidle');
 		await screenshot(page, 'child-profile-featured');
