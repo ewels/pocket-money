@@ -780,7 +780,8 @@ export function calculateNextRun(
 			const targetDay = dayOfWeek ?? 1; // Default to Monday
 			const currentDay = nextRun.getDay();
 			let daysUntilTarget = targetDay - currentDay;
-			if (daysUntilTarget <= 0) daysUntilTarget += 7;
+			// Use < 0 (not <= 0) so same-day rules can trigger today
+			if (daysUntilTarget < 0) daysUntilTarget += 7;
 			nextRun.setDate(nextRun.getDate() + daysUntilTarget);
 			nextRun.setHours(0, 0, 0, 0);
 			break;
@@ -788,7 +789,11 @@ export function calculateNextRun(
 		case 'monthly': {
 			nextRun = new Date(now);
 			const targetDayOfMonth = dayOfMonth ?? 1;
-			nextRun.setMonth(nextRun.getMonth() + 1);
+			const currentDayOfMonth = nextRun.getDate();
+			// Only advance to next month if target day has already passed
+			if (currentDayOfMonth > targetDayOfMonth) {
+				nextRun.setMonth(nextRun.getMonth() + 1);
+			}
 			// Handle months with fewer days
 			const lastDayOfMonth = new Date(nextRun.getFullYear(), nextRun.getMonth() + 1, 0).getDate();
 			nextRun.setDate(Math.min(targetDayOfMonth, lastDayOfMonth));

@@ -1,7 +1,13 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
-	import { getInitials, colorHexMap, formatInterval, type ChildColor } from '$lib/utils';
+	import {
+		getInitials,
+		colorHexMap,
+		formatInterval,
+		formatDate,
+		type ChildColor
+	} from '$lib/utils';
 	import { formatMoney } from '$lib/currencies';
 	import ColorPicker from '$lib/components/ColorPicker.svelte';
 	import PhotoUpload from '$lib/components/PhotoUpload.svelte';
@@ -423,6 +429,7 @@
 								{#if !rule.active}
 									<span class="text-orange-500">(paused)</span>
 								{/if}
+								<span class="text-gray-400">· Next: {formatDate(rule.next_run_at)}</span>
 							</p>
 						</div>
 						<div class="flex gap-1">
