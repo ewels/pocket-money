@@ -772,7 +772,7 @@ export function calculateNextRun(
 		case 'daily': {
 			nextRun = new Date(now);
 			nextRun.setDate(nextRun.getDate() + 1);
-			nextRun.setHours(0, 0, 0, 0);
+			nextRun.setHours(1, 0, 0, 0); // 1 AM UTC to avoid midnight day boundary confusion
 			break;
 		}
 		case 'weekly': {
@@ -782,7 +782,7 @@ export function calculateNextRun(
 			let daysUntilTarget = targetDay - currentDay;
 			if (daysUntilTarget <= 0) daysUntilTarget += 7;
 			nextRun.setDate(nextRun.getDate() + daysUntilTarget);
-			nextRun.setHours(0, 0, 0, 0);
+			nextRun.setHours(1, 0, 0, 0); // 1 AM UTC to avoid midnight day boundary confusion
 			break;
 		}
 		case 'monthly': {
@@ -792,7 +792,7 @@ export function calculateNextRun(
 			// Handle months with fewer days
 			const lastDayOfMonth = new Date(nextRun.getFullYear(), nextRun.getMonth() + 1, 0).getDate();
 			nextRun.setDate(Math.min(targetDayOfMonth, lastDayOfMonth));
-			nextRun.setHours(0, 0, 0, 0);
+			nextRun.setHours(1, 0, 0, 0); // 1 AM UTC to avoid midnight day boundary confusion
 			break;
 		}
 		case 'days':
