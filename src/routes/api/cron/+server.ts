@@ -32,7 +32,9 @@ export const GET: RequestHandler = async ({ platform }) => {
 			rule.interval_type,
 			rule.interval_days,
 			rule.day_of_week,
-			rule.day_of_month
+			rule.day_of_month,
+			rule.time_of_day,
+			rule.timezone
 		);
 
 		if (totalDeductions >= rule.amount) {

@@ -77,6 +77,8 @@ export type RecurringRule = {
 	interval_type: IntervalType;
 	day_of_week: number | null; // 0-6 (Sunday-Saturday)
 	day_of_month: number | null; // 1-28
+	time_of_day: number; // 0-23 (hour in configured timezone)
+	timezone: string; // IANA timezone e.g. "Europe/London"
 	next_run_at: number;
 	active: number;
 	created_at: number;
@@ -491,7 +493,7 @@ export async function createRecurringRule(
 ): Promise<void> {
 	await db
 		.prepare(
-			'INSERT INTO recurring_rules (id, child_id, amount, description, interval_days, interval_type, day_of_week, day_of_month, next_run_at, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+			'INSERT INTO recurring_rules (id, child_id, amount, description, interval_days, interval_type, day_of_week, day_of_month, time_of_day, timezone, next_run_at, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 		)
 		.bind(
 			rule.id,
@@ -502,6 +504,8 @@ export async function createRecurringRule(
 			rule.interval_type,
 			rule.day_of_week,
 			rule.day_of_month,
+			rule.time_of_day,
+			rule.timezone,
 			rule.next_run_at,
 			rule.active
 		)
@@ -520,7 +524,7 @@ export async function updateRecurringRule(
 	if (!rule) return;
 	await db
 		.prepare(
-			'UPDATE recurring_rules SET amount = ?, description = ?, interval_days = ?, interval_type = ?, day_of_week = ?, day_of_month = ?, next_run_at = ?, active = ? WHERE id = ?'
+			'UPDATE recurring_rules SET amount = ?, description = ?, interval_days = ?, interval_type = ?, day_of_week = ?, day_of_month = ?, time_of_day = ?, timezone = ?, next_run_at = ?, active = ? WHERE id = ?'
 		)
 		.bind(
 			updates.amount ?? rule.amount,
@@ -529,6 +533,8 @@ export async function updateRecurringRule(
 			updates.interval_type ?? rule.interval_type,
 			updates.day_of_week !== undefined ? updates.day_of_week : rule.day_of_week,
 			updates.day_of_month !== undefined ? updates.day_of_month : rule.day_of_month,
+			updates.time_of_day ?? rule.time_of_day,
+			updates.timezone ?? rule.timezone,
 			updates.next_run_at ?? rule.next_run_at,
 			updates.active ?? rule.active,
 			id
@@ -758,50 +764,159 @@ export async function consumeDeductions(
 	};
 }
 
+// Helper function to convert a local time in a timezone to UTC timestamp
+function localTimeToUtc(
+	year: number,
+	month: number, // 0-11
+	day: number,
+	hour: number,
+	timezone: string
+): number {
+	// Create a date string and use the timezone to find the UTC equivalent
+	const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:00:00`;
+
+	// Get the offset for this specific date/time in the timezone
+	const formatter = new Intl.DateTimeFormat('en-US', {
+		timeZone: timezone,
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
+		hour: '2-digit',
+		minute: '2-digit',
+		second: '2-digit',
+		hour12: false
+	});
+
+	// Start with a guess (the date as if it were UTC)
+	let guess = new Date(`${dateStr}Z`);
+
+	// Format the guess in the target timezone and compare
+	for (let i = 0; i < 3; i++) {
+		const parts = formatter.formatToParts(guess);
+		const getPart = (type: string) => parts.find((p) => p.type === type)?.value || '0';
+
+		const localYear = parseInt(getPart('year'));
+		const localMonth = parseInt(getPart('month')) - 1;
+		const localDay = parseInt(getPart('day'));
+		const localHour = parseInt(getPart('hour'));
+
+		// Calculate difference between what we want and what we got
+		const wantedDate = new Date(year, month, day, hour);
+		const gotDate = new Date(localYear, localMonth, localDay, localHour);
+		const diffMs = wantedDate.getTime() - gotDate.getTime();
+
+		if (Math.abs(diffMs) < 60000) break; // Close enough (within 1 minute)
+		guess = new Date(guess.getTime() + diffMs);
+	}
+
+	return Math.floor(guess.getTime() / 1000);
+}
+
+// Get the current day of week in a specific timezone
+function getDayOfWeekInTimezone(date: Date, timezone: string): number {
+	const formatter = new Intl.DateTimeFormat('en-US', {
+		timeZone: timezone,
+		weekday: 'short'
+	});
+	const dayName = formatter.format(date);
+	const days: Record<string, number> = {
+		Sun: 0,
+		Mon: 1,
+		Tue: 2,
+		Wed: 3,
+		Thu: 4,
+		Fri: 5,
+		Sat: 6
+	};
+	return days[dayName] ?? 0;
+}
+
+// Get date parts in a specific timezone
+function getDatePartsInTimezone(
+	date: Date,
+	timezone: string
+): { year: number; month: number; day: number; hour: number } {
+	const formatter = new Intl.DateTimeFormat('en-US', {
+		timeZone: timezone,
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
+		hour: '2-digit',
+		hour12: false
+	});
+	const parts = formatter.formatToParts(date);
+	const getPart = (type: string) => parseInt(parts.find((p) => p.type === type)?.value || '0');
+	return {
+		year: getPart('year'),
+		month: getPart('month') - 1,
+		day: getPart('day'),
+		hour: getPart('hour')
+	};
+}
+
 // Helper functions for recurring payment scheduling
 export function calculateNextRun(
 	intervalType: IntervalType,
 	intervalDays: number,
 	dayOfWeek: number | null,
-	dayOfMonth: number | null
+	dayOfMonth: number | null,
+	timeOfDay: number = 7,
+	timezone: string = 'Europe/London'
 ): number {
 	const now = new Date();
-	let nextRun: Date;
+	const nowParts = getDatePartsInTimezone(now, timezone);
+	const currentDayOfWeek = getDayOfWeekInTimezone(now, timezone);
+
+	let targetYear = nowParts.year;
+	let targetMonth = nowParts.month;
+	let targetDay = nowParts.day;
 
 	switch (intervalType) {
 		case 'daily': {
-			nextRun = new Date(now);
-			nextRun.setDate(nextRun.getDate() + 1);
-			nextRun.setHours(1, 0, 0, 0); // 1 AM UTC to avoid midnight day boundary confusion
+			// Next day
+			const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+			const tomorrowParts = getDatePartsInTimezone(tomorrow, timezone);
+			targetYear = tomorrowParts.year;
+			targetMonth = tomorrowParts.month;
+			targetDay = tomorrowParts.day;
 			break;
 		}
 		case 'weekly': {
-			nextRun = new Date(now);
-			const targetDay = dayOfWeek ?? 1; // Default to Monday
-			const currentDay = nextRun.getDay();
-			let daysUntilTarget = targetDay - currentDay;
+			const targetDayOfWeek = dayOfWeek ?? 1; // Default to Monday
+			let daysUntilTarget = targetDayOfWeek - currentDayOfWeek;
 			if (daysUntilTarget <= 0) daysUntilTarget += 7;
-			nextRun.setDate(nextRun.getDate() + daysUntilTarget);
-			nextRun.setHours(1, 0, 0, 0); // 1 AM UTC to avoid midnight day boundary confusion
+			const targetDate = new Date(now.getTime() + daysUntilTarget * 24 * 60 * 60 * 1000);
+			const targetParts = getDatePartsInTimezone(targetDate, timezone);
+			targetYear = targetParts.year;
+			targetMonth = targetParts.month;
+			targetDay = targetParts.day;
 			break;
 		}
 		case 'monthly': {
-			nextRun = new Date(now);
 			const targetDayOfMonth = dayOfMonth ?? 1;
-			nextRun.setMonth(nextRun.getMonth() + 1);
+			// Move to next month
+			targetMonth = nowParts.month + 1;
+			if (targetMonth > 11) {
+				targetMonth = 0;
+				targetYear++;
+			}
 			// Handle months with fewer days
-			const lastDayOfMonth = new Date(nextRun.getFullYear(), nextRun.getMonth() + 1, 0).getDate();
-			nextRun.setDate(Math.min(targetDayOfMonth, lastDayOfMonth));
-			nextRun.setHours(1, 0, 0, 0); // 1 AM UTC to avoid midnight day boundary confusion
+			const lastDayOfMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+			targetDay = Math.min(targetDayOfMonth, lastDayOfMonth);
 			break;
 		}
 		case 'days':
-		default:
-			nextRun = new Date(now.getTime() + intervalDays * 24 * 60 * 60 * 1000);
+		default: {
+			const futureDate = new Date(now.getTime() + intervalDays * 24 * 60 * 60 * 1000);
+			const futureParts = getDatePartsInTimezone(futureDate, timezone);
+			targetYear = futureParts.year;
+			targetMonth = futureParts.month;
+			targetDay = futureParts.day;
 			break;
+		}
 	}
 
-	return Math.floor(nextRun.getTime() / 1000);
+	return localTimeToUtc(targetYear, targetMonth, targetDay, timeOfDay, timezone);
 }
 
 export function calculateNextRunFromCurrent(
@@ -809,38 +924,61 @@ export function calculateNextRunFromCurrent(
 	intervalType: IntervalType,
 	intervalDays: number,
 	dayOfWeek: number | null,
-	dayOfMonth: number | null
+	dayOfMonth: number | null,
+	timeOfDay: number = 7,
+	timezone: string = 'Europe/London'
 ): number {
 	const current = new Date(currentNextRun * 1000);
-	let nextRun: Date;
+	const currentParts = getDatePartsInTimezone(current, timezone);
+
+	let targetYear = currentParts.year;
+	let targetMonth = currentParts.month;
+	let targetDay = currentParts.day;
 
 	switch (intervalType) {
 		case 'daily': {
-			nextRun = new Date(current);
-			nextRun.setDate(nextRun.getDate() + 1);
+			// Add one day
+			const nextDate = new Date(current.getTime() + 24 * 60 * 60 * 1000);
+			const nextParts = getDatePartsInTimezone(nextDate, timezone);
+			targetYear = nextParts.year;
+			targetMonth = nextParts.month;
+			targetDay = nextParts.day;
 			break;
 		}
 		case 'weekly': {
-			nextRun = new Date(current);
-			nextRun.setDate(nextRun.getDate() + 7);
+			// Add 7 days
+			const nextDate = new Date(current.getTime() + 7 * 24 * 60 * 60 * 1000);
+			const nextParts = getDatePartsInTimezone(nextDate, timezone);
+			targetYear = nextParts.year;
+			targetMonth = nextParts.month;
+			targetDay = nextParts.day;
 			break;
 		}
 		case 'monthly': {
-			nextRun = new Date(current);
-			nextRun.setMonth(nextRun.getMonth() + 1);
+			// Move to next month, same day
+			targetMonth = currentParts.month + 1;
+			if (targetMonth > 11) {
+				targetMonth = 0;
+				targetYear++;
+			}
 			// Handle months with fewer days
-			const targetDayOfMonth = dayOfMonth ?? current.getDate();
-			const lastDayOfMonth = new Date(nextRun.getFullYear(), nextRun.getMonth() + 1, 0).getDate();
-			nextRun.setDate(Math.min(targetDayOfMonth, lastDayOfMonth));
+			const targetDayOfMonth = dayOfMonth ?? currentParts.day;
+			const lastDayOfMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+			targetDay = Math.min(targetDayOfMonth, lastDayOfMonth);
 			break;
 		}
 		case 'days':
-		default:
-			nextRun = new Date(current.getTime() + intervalDays * 24 * 60 * 60 * 1000);
+		default: {
+			const nextDate = new Date(current.getTime() + intervalDays * 24 * 60 * 60 * 1000);
+			const nextParts = getDatePartsInTimezone(nextDate, timezone);
+			targetYear = nextParts.year;
+			targetMonth = nextParts.month;
+			targetDay = nextParts.day;
 			break;
+		}
 	}
 
-	return Math.floor(nextRun.getTime() / 1000);
+	return localTimeToUtc(targetYear, targetMonth, targetDay, timeOfDay, timezone);
 }
 
 export function formatInterval(rule: RecurringRule): string {
