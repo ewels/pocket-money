@@ -445,13 +445,17 @@ export const actions: Actions = {
 		else if (intervalType === 'weekly') intervalDays = 7;
 		else if (intervalType === 'monthly') intervalDays = 30;
 
+		// Recalculate next_run_at when interval settings change
+		const nextRun = calculateNextRun(intervalType, intervalDays, dayOfWeek, dayOfMonth);
+
 		await updateRecurringRule(db, ruleId, {
 			amount,
 			description,
 			interval_days: intervalDays,
 			interval_type: intervalType,
 			day_of_week: dayOfWeek,
-			day_of_month: dayOfMonth
+			day_of_month: dayOfMonth,
+			next_run_at: nextRun
 		});
 
 		return { success: 'Recurring payment updated' };
