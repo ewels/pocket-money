@@ -1,5 +1,26 @@
 # Changelog
 
+## [v1.2.1](https://github.com/ewels/pocket-money/releases/tag/v1.2.1) - 2026-02-21
+
+### New Features
+
+- **Multi-segment donut chart**: Savings targets are now shown as individual segments in the donut ring, giving a clearer visual breakdown of progress toward multiple targets.
+- **Searchable timezone selector**: The recurring payment timezone field now uses a dynamic, searchable combobox instead of a hardcoded list.
+
+### Improvements
+
+- Recurring payments now run every 6 hours (instead of daily) to improve scheduling accuracy.
+- Next run time is recalculated immediately when editing a recurring payment's schedule.
+- Configurable time and timezone for when recurring payments are processed.
+
+### Fixes
+
+- Fixed recurring payment timezone bugs with added validation.
+- Fixed mobile layout: action buttons now wrap in a 2×2 grid and the balance history heading stacks correctly on small screens.
+- Fixed balance history graph prediction to correctly account for pending deductions.
+
+---
+
 ## [v1.2.0](https://github.com/ewels/pocket-money/releases/tag/v1.2.0) - 2026-02-21
 
 ### New Features
