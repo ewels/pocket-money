@@ -784,7 +784,7 @@ function localTimeToUtc(
 		hour: '2-digit',
 		minute: '2-digit',
 		second: '2-digit',
-		hour12: false
+		hourCycle: 'h23'
 	});
 
 	// Start with a guess (the date as if it were UTC)
@@ -842,7 +842,7 @@ function getDatePartsInTimezone(
 		month: '2-digit',
 		day: '2-digit',
 		hour: '2-digit',
-		hour12: false
+		hourCycle: 'h23'
 	});
 	const parts = formatter.formatToParts(date);
 	const getPart = (type: string) => parseInt(parts.find((p) => p.type === type)?.value || '0');

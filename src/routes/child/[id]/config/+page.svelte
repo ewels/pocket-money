@@ -19,7 +19,7 @@
 
 	// Recurring payment form state
 	let newIntervalType = $state<'daily' | 'weekly' | 'monthly'>('weekly');
-	let newDayOfWeek = $state(0); // Sunday
+	let newDayOfWeek = $state(1); // Monday
 	let newDayOfMonth = $state(1);
 	let newTimeOfDay = $state(7); // 7 AM
 	let newTimezone = $state(Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/London');
@@ -27,7 +27,7 @@
 	const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 	// Common timezones with city names for DST handling
-	const timezones = [
+	const commonTimezones = [
 		{ value: 'Europe/London', label: 'London (GMT/BST)' },
 		{ value: 'Europe/Dublin', label: 'Dublin (GMT/IST)' },
 		{ value: 'Europe/Paris', label: 'Paris (CET/CEST)' },
@@ -59,6 +59,15 @@
 		{ value: 'Australia/Perth', label: 'Perth (AWST)' },
 		{ value: 'Pacific/Auckland', label: 'Auckland (NZST/NZDT)' }
 	];
+
+	// Add the browser's detected timezone if it's not in the common list
+	const detectedTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+	const timezones = commonTimezones.some((tz) => tz.value === detectedTz)
+		? commonTimezones
+		: [
+				{ value: detectedTz, label: `${detectedTz.replace(/_/g, ' ')} (detected)` },
+				...commonTimezones
+			];
 
 	// Drag and drop state
 	let draggedTargetId = $state<string | null>(null);
@@ -585,7 +594,7 @@
 							if (result.type === 'success') {
 								showAddRecurring = false;
 								newIntervalType = 'weekly';
-								newDayOfWeek = 0;
+								newDayOfWeek = 1;
 								newDayOfMonth = 1;
 								newTimeOfDay = 7;
 								newTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/London';

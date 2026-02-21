@@ -345,6 +345,18 @@ export const actions: Actions = {
 			: 7;
 		const timezone = formData.get('timezone')?.toString() || 'Europe/London';
 
+		// Validate timeOfDay range
+		if (isNaN(timeOfDay) || timeOfDay < 0 || timeOfDay > 23) {
+			return fail(400, { error: 'Invalid time of day (must be 0-23)' });
+		}
+
+		// Validate timezone is a valid IANA timezone
+		try {
+			Intl.DateTimeFormat(undefined, { timeZone: timezone });
+		} catch {
+			return fail(400, { error: 'Invalid timezone' });
+		}
+
 		if (!amountStr) {
 			return fail(400, { error: 'Amount is required' });
 		}
@@ -446,6 +458,18 @@ export const actions: Actions = {
 			? parseInt(formData.get('timeOfDay')!.toString(), 10)
 			: 7;
 		const timezone = formData.get('timezone')?.toString() || 'Europe/London';
+
+		// Validate timeOfDay range
+		if (isNaN(timeOfDay) || timeOfDay < 0 || timeOfDay > 23) {
+			return fail(400, { error: 'Invalid time of day (must be 0-23)' });
+		}
+
+		// Validate timezone is a valid IANA timezone
+		try {
+			Intl.DateTimeFormat(undefined, { timeZone: timezone });
+		} catch {
+			return fail(400, { error: 'Invalid timezone' });
+		}
 
 		if (!ruleId || !amountStr) {
 			return fail(400, { error: 'Rule ID and amount are required' });
