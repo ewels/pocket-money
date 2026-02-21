@@ -11,8 +11,9 @@ Set up automatic allowance deposits on any schedule.
    - **Daily** - Every day
    - **Weekly** - Choose which day of the week
    - **Monthly** - Choose which day of the month (1-28)
-5. Add an optional description (e.g., "Weekly allowance")
-6. Click **Add**
+5. Set the **Time of day** (hour) and **Timezone** for when the payment should run
+6. Add an optional description (e.g., "Weekly allowance")
+7. Click **Add**
 
 ![Add Recurring Payment](../assets/screenshots/add-recurring-modal.png)
 
@@ -30,6 +31,7 @@ Click the pencil icon to modify an existing rule:
 
 - Change the amount
 - Change the frequency and day
+- Change the time of day and timezone
 - Update the description
 
 ### Paused / Resumed
@@ -87,10 +89,10 @@ Click the **Deduct** button or the arrow on the card to view and delete individu
 
 ## When Payments Run
 
-Recurring payments are processed when the `/api/cron` endpoint is called. This should be configured to run daily - see the [Deployment Guide](../getting-started/deployment.md#set-up-recurring-payments).
+Recurring payments are processed when the `/api/cron` endpoint is called. This should be configured to run hourly - see the [Deployment Guide](../getting-started/deployment.md#set-up-recurring-payments).
 
 !!! info "Timing"
-    Payments are deposited when the cron job runs, typically once per day. The exact time depends on your cron schedule.
+    Payments are deposited within one hour of the scheduled time. The cron endpoint runs every hour, so the maximum delay between the configured time and actual payment is one hour.
 
 ## Transaction Attribution
 

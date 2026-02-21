@@ -84,7 +84,7 @@ Set up the following secrets in your GitHub repository (**Settings** → **Secre
 
 ## Set Up Recurring Payments
 
-The app has an endpoint `/api/cron` that processes recurring payments. You need to call this endpoint daily for allowances to be deposited automatically.
+The app has an endpoint `/api/cron` that processes recurring payments. You need to call this endpoint hourly so that allowances are deposited at their configured times.
 
 ### Option A: GitHub Actions (Recommended)
 
@@ -97,11 +97,11 @@ If you've forked this repo to GitHub, you can use the included GitHub Action:
 5. Value: `https://your-app.pages.dev/api/cron`
 6. Click **Add secret**
 
-The workflow runs daily at 6:00 AM UTC. You can also trigger it manually from the **Actions** tab.
+The workflow runs every hour. You can also trigger it manually from the **Actions** tab.
 
 ### Option B: External Cron Service
 
-Use a free service like [cron-job.org](https://cron-job.org) to call your endpoint daily:
+Use a free service like [cron-job.org](https://cron-job.org) to call your endpoint hourly:
 
 ```
 GET https://your-app.pages.dev/api/cron
