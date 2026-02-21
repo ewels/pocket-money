@@ -128,11 +128,25 @@ async function main() {
 		await page.waitForLoadState('networkidle');
 		await screenshot(page, 'child-settings', true);
 
-		// Add saving target
+		// Add saving targets (multiple, to show segmented progress ring on dashboard)
 		await page.click('button:has-text("Add Target")');
 		await page.waitForSelector('text=Add Saving Target >> visible=true');
 		await page.fill('input#targetName', 'New bicycle');
 		await page.fill('input#targetAmount', '150');
+		await page.locator('.fixed.inset-0.z-50 form button[type="submit"]').click({ force: true });
+		await page.waitForTimeout(500);
+
+		await page.click('button:has-text("Add Target")');
+		await page.waitForSelector('text=Add Saving Target >> visible=true');
+		await page.fill('input#targetName', 'Video game');
+		await page.fill('input#targetAmount', '60');
+		await page.locator('.fixed.inset-0.z-50 form button[type="submit"]').click({ force: true });
+		await page.waitForTimeout(500);
+
+		await page.click('button:has-text("Add Target")');
+		await page.waitForSelector('text=Add Saving Target >> visible=true');
+		await page.fill('input#targetName', 'Holiday spending');
+		await page.fill('input#targetAmount', '100');
 		await page.locator('.fixed.inset-0.z-50 form button[type="submit"]').click({ force: true });
 		await page.waitForTimeout(500);
 
@@ -159,6 +173,14 @@ async function main() {
 		// Wait for chart animation to complete
 		await page.waitForTimeout(1500);
 		await screenshot(page, 'child-profile-featured');
+
+		// Re-capture dashboard now that child has balance and multiple saving targets,
+		// so the segmented progress ring is visible
+		await page.click('a:has-text("Dashboard")');
+		await page.waitForURL(`${BASE_URL}/`);
+		await page.waitForLoadState('networkidle');
+		await page.waitForTimeout(1000);
+		await screenshot(page, 'dashboard');
 
 		// ============================================
 		// App Settings Screenshots

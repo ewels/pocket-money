@@ -4,6 +4,16 @@ Saving targets help children work toward financial goals with visual progress tr
 
 ![Saving Targets](../assets/screenshots/child-settings-configured.png)
 
+## Dashboard Progress Ring
+
+Each child card on the dashboard shows a segmented progress ring when saving targets are set. Each segment of the ring represents one target, sized proportionally to its amount. Progress fills from the first target outward:
+
+- **Filled segments** (child colour) — fully or partially reached targets
+- **Empty segments** (grey) — targets not yet started
+- **Gaps** between segments make it clear where one target ends and the next begins
+
+![Dashboard with saving targets](../assets/screenshots/dashboard.png)
+
 ## Creating a Target
 
 You can add a target from two places:
