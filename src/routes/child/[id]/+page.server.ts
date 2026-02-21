@@ -69,23 +69,27 @@ export const load: PageServerLoad = async ({ params, locals, platform, url }) =>
 		getTotalDeductions(db, child.id)
 	]);
 
-	// Calculate next payment amount from active recurring rules
+	// Calculate upcoming payments (next 3), accounting for pending deductions
 	const activeRules = recurringRules.filter((r) => r.active);
-	const nextPaymentAmount =
-		activeRules.length > 0
-			? activeRules.slice().sort((a, b) => a.next_run_at - b.next_run_at)[0].amount
-			: 0;
+	const sortedRules = activeRules.slice().sort((a, b) => a.next_run_at - b.next_run_at);
 
-	// Calculate upcoming payments (next 3)
-	const upcomingPayments = activeRules
-		.slice()
-		.sort((a, b) => a.next_run_at - b.next_run_at)
-		.slice(0, 3)
-		.map((rule) => ({
+	// Simulate deduction consumption across upcoming payments (same FIFO logic as cron)
+	let remainingDeductions = totalDeductions;
+	const upcomingPayments = sortedRules.slice(0, 3).map((rule) => {
+		let actualAmount = rule.amount;
+		if (remainingDeductions > 0) {
+			const deducted = Math.min(remainingDeductions, rule.amount);
+			actualAmount = rule.amount - deducted;
+			remainingDeductions -= deducted;
+		}
+		return {
 			description: rule.description,
-			amount: rule.amount,
+			amount: actualAmount,
 			date: rule.next_run_at
-		}));
+		};
+	});
+
+	const nextPaymentAmount = upcomingPayments.length > 0 ? upcomingPayments[0].amount : 0;
 
 	// Calculate monthly income from active recurring rules (normalized to 30-day equivalent)
 	const monthlyIncome = activeRules.reduce((total, rule) => {
