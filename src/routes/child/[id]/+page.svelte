@@ -120,7 +120,7 @@
 	</div>
 
 	<!-- Action buttons -->
-	<div class="flex gap-3">
+	<div class="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
 		<button type="button" class="btn-success flex-1" onclick={() => (showAddMoney = true)}>
 			<svg
 				class="mr-2 h-5 w-5"
@@ -304,7 +304,7 @@
 	<!-- Balance History Chart -->
 	{#if data.balanceHistory.length > 0}
 		<div class="card p-6">
-			<div class="flex items-center justify-between mb-4">
+			<div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
 				<div class="flex items-center gap-3">
 					<h2 class="text-lg font-semibold text-gray-900">Balance History</h2>
 					<div class="flex bg-gray-100 rounded-lg p-0.5">
