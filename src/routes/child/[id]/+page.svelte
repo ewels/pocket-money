@@ -12,9 +12,12 @@
 
 	let showAddMoney = $state(false);
 	let showWithdraw = $state(false);
+	let showAdvance = $state(false);
 	let showAddTarget = $state(false);
 	let showDeductions = $state(false);
 	let loading = $state(false);
+
+	const hasActiveRules = $derived(data.recurringRules.some((r: { active: number }) => r.active));
 
 	const color = $derived(data.child.color as ChildColor);
 	const colorHex = $derived(colorHexMap[color] ?? colorHexMap.blue);
@@ -123,33 +126,53 @@
 			</svg>
 			Withdraw
 		</button>
-		<button
-			type="button"
-			class="btn-warning flex-1 relative"
-			onclick={() => (showDeductions = true)}
-		>
-			<svg
-				class="mr-2 h-5 w-5"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke-width="1.5"
-				stroke="currentColor"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
-				/>
-			</svg>
-			Deduct
-			{#if data.totalDeductions > 0}
-				<span
-					class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white"
+		{#if hasActiveRules}
+			<button type="button" class="btn-info flex-1" onclick={() => (showAdvance = true)}>
+				<svg
+					class="mr-2 h-5 w-5"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke-width="1.5"
+					stroke="currentColor"
 				>
-					{data.deductions.length}
-				</span>
-			{/if}
-		</button>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M3 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 010 1.954l-7.108 4.061A1.125 1.125 0 013 16.811V8.69zM12.75 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 010 1.954l-7.108 4.061a1.125 1.125 0 01-1.683-.977V8.69z"
+					/>
+				</svg>
+				Advance
+			</button>
+		{/if}
+		{#if hasActiveRules || data.totalDeductions > 0}
+			<button
+				type="button"
+				class="btn-warning flex-1 relative"
+				onclick={() => (showDeductions = true)}
+			>
+				<svg
+					class="mr-2 h-5 w-5"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke-width="1.5"
+					stroke="currentColor"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+					/>
+				</svg>
+				Deduct
+				{#if data.totalDeductions > 0}
+					<span
+						class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white"
+					>
+						{data.deductions.length}
+					</span>
+				{/if}
+			</button>
+		{/if}
 	</div>
 
 	<!-- Pending Deductions Card -->
@@ -161,7 +184,15 @@
 					<p class="text-lg font-bold text-orange-600">
 						{formatMoney(data.totalDeductions, data.settings?.currency ?? 'EUR')}
 					</p>
-					<p class="text-xs text-orange-600">
+					{#each data.deductions as deduction}
+						<p class="text-xs text-orange-600">
+							{formatMoney(
+								deduction.amount,
+								data.settings?.currency ?? 'EUR'
+							)}{deduction.description ? `: ${deduction.description}` : ''}
+						</p>
+					{/each}
+					<p class="text-xs text-orange-600 mt-1">
 						Will reduce the next {data.deductions.length === 1 ? 'payment' : 'payments'}
 					</p>
 				</div>
@@ -446,6 +477,80 @@
 						>
 						<button type="submit" class="btn-danger" disabled={loading}>
 							{loading ? 'Withdrawing...' : 'Withdraw'}
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+{/if}
+
+<!-- Advance Payment Modal -->
+{#if showAdvance}
+	<div class="fixed inset-0 z-50 overflow-y-auto">
+		<div class="flex min-h-full items-center justify-center p-4">
+			<button
+				type="button"
+				class="fixed inset-0 bg-black/50"
+				onclick={() => (showAdvance = false)}
+				aria-label="Close"
+			></button>
+			<div class="relative w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+				<h2 class="text-lg font-semibold text-gray-900">Advance Payment</h2>
+				<p class="mt-1 text-sm text-gray-500">
+					This will add the amount to the balance now and deduct it from the next scheduled payment.
+				</p>
+				<form
+					method="POST"
+					action="?/advance"
+					use:enhance={() => {
+						loading = true;
+						return async ({ result, update }) => {
+							loading = false;
+							if (result.type === 'success') showAdvance = false;
+							await update();
+						};
+					}}
+					class="mt-4 space-y-4"
+				>
+					<div>
+						<label for="advanceAmount" class="label">Amount</label>
+						<input
+							id="advanceAmount"
+							name="amount"
+							type="number"
+							step="0.01"
+							min="0.01"
+							required
+							class="input"
+							placeholder="0.00"
+							value={data.nextPaymentAmount > 0 ? data.nextPaymentAmount : ''}
+						/>
+						{#if data.nextPaymentAmount > 0}
+							<p class="mt-1 text-xs text-gray-500">
+								Pre-filled with next payment amount ({formatMoney(
+									data.nextPaymentAmount,
+									data.settings?.currency ?? 'EUR'
+								)})
+							</p>
+						{/if}
+					</div>
+					<div>
+						<label for="advanceDescription" class="label">Description (optional)</label>
+						<input
+							id="advanceDescription"
+							name="description"
+							type="text"
+							class="input"
+							placeholder="e.g., Early pocket money"
+						/>
+					</div>
+					<div class="flex justify-end gap-3 pt-4">
+						<button type="button" class="btn-secondary" onclick={() => (showAdvance = false)}
+							>Cancel</button
+						>
+						<button type="submit" class="btn-info" disabled={loading}>
+							{loading ? 'Advancing...' : 'Advance Payment'}
 						</button>
 					</div>
 				</form>
