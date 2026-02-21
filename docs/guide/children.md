@@ -22,14 +22,12 @@ Click on a child's card to view their profile:
 
 ![Child Profile](../assets/screenshots/child-profile-with-transaction.png)
 
-### Balance History Time Range
+### Balance History
 
-Use the buttons in the top-right of the Balance History chart to change the time range:
+The Balance History chart has two display modes, toggled with the **Events / Time** buttons:
 
-- **1W** - Last 7 days
-- **1M** - Last 30 days (default)
-- **6M** - Last 6 months
-- **All** - All time since first transaction
+- **Events mode** (default) - Shows the last N individual transactions on the x-axis. Use the count buttons to choose how many events to display: **5**, **15** (default), **50**, or **All**
+- **Time mode** - Shows balance over a calendar time range. Use the range buttons: **1W** (last 7 days), **1M** (last 30 days, default), **6M** (last 6 months), or **All** (all time)
 
 ## Adding Money
 
