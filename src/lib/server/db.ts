@@ -910,7 +910,7 @@ export async function consumeDeductions(
 }
 
 // Helper function to convert a local time in a timezone to UTC timestamp
-function localTimeToUtc(
+export function localTimeToUtc(
 	year: number,
 	month: number, // 0-11
 	day: number,
@@ -946,19 +946,30 @@ function localTimeToUtc(
 		const localHour = parseInt(getPart('hour'));
 
 		// Calculate difference between what we want and what we got
-		const wantedDate = new Date(year, month, day, hour);
-		const gotDate = new Date(localYear, localMonth, localDay, localHour);
-		const diffMs = wantedDate.getTime() - gotDate.getTime();
+		// Use Date.UTC for both to avoid server-timezone dependency
+		const wantedMs = Date.UTC(year, month, day, hour);
+		const gotMs = Date.UTC(localYear, localMonth, localDay, localHour);
+		const diffMs = wantedMs - gotMs;
 
 		if (Math.abs(diffMs) < 60000) break; // Close enough (within 1 minute)
 		guess = new Date(guess.getTime() + diffMs);
+	}
+
+	// Handle DST spring-forward gap: if the resolved local hour doesn't match
+	// the requested hour, the time doesn't exist (e.g. 2:00 AM during spring-forward).
+	// Clamp to the next valid hour (the hour after the gap).
+	const finalParts = formatter.formatToParts(guess);
+	const finalHour = parseInt(finalParts.find((p) => p.type === 'hour')?.value || '0');
+	if (finalHour !== hour) {
+		// Advance to the next hour boundary
+		guess = new Date(guess.getTime() + (hour + 1 - finalHour) * 3600000);
 	}
 
 	return Math.floor(guess.getTime() / 1000);
 }
 
 // Get the current day of week in a specific timezone
-function getDayOfWeekInTimezone(date: Date, timezone: string): number {
+export function getDayOfWeekInTimezone(date: Date, timezone: string): number {
 	const formatter = new Intl.DateTimeFormat('en-US', {
 		timeZone: timezone,
 		weekday: 'short'
@@ -977,7 +988,7 @@ function getDayOfWeekInTimezone(date: Date, timezone: string): number {
 }
 
 // Get date parts in a specific timezone
-function getDatePartsInTimezone(
+export function getDatePartsInTimezone(
 	date: Date,
 	timezone: string
 ): { year: number; month: number; day: number; hour: number } {

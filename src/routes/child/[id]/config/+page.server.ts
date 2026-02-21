@@ -354,6 +354,15 @@ export const actions: Actions = {
 			return fail(400, { error: 'Invalid amount' });
 		}
 
+		if (isNaN(timeOfDay) || timeOfDay < 0 || timeOfDay > 23) {
+			return fail(400, { error: 'Time of day must be between 0 and 23' });
+		}
+		try {
+			Intl.DateTimeFormat(undefined, { timeZone: timezone });
+		} catch {
+			return fail(400, { error: 'Invalid timezone' });
+		}
+
 		// Calculate interval_days for backwards compatibility
 		let intervalDays = 7;
 		if (intervalType === 'daily') intervalDays = 1;
@@ -454,6 +463,15 @@ export const actions: Actions = {
 		const amount = parseFloat(amountStr);
 		if (isNaN(amount) || amount <= 0) {
 			return fail(400, { error: 'Invalid amount' });
+		}
+
+		if (isNaN(timeOfDay) || timeOfDay < 0 || timeOfDay > 23) {
+			return fail(400, { error: 'Time of day must be between 0 and 23' });
+		}
+		try {
+			Intl.DateTimeFormat(undefined, { timeZone: timezone });
+		} catch {
+			return fail(400, { error: 'Invalid timezone' });
 		}
 
 		// Calculate interval_days for backwards compatibility
