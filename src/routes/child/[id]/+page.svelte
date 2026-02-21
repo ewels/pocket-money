@@ -16,18 +16,27 @@
 	let showAddTarget = $state(false);
 	let showDeductions = $state(false);
 	let loading = $state(false);
+	let chartMode = $state<'events' | 'time'>('events');
 
 	const hasActiveRules = $derived(data.recurringRules.some((r: { active: number }) => r.active));
 
 	const color = $derived(data.child.color as ChildColor);
 	const colorHex = $derived(colorHexMap[color] ?? colorHexMap.blue);
 
-	// Date range options for balance history
+	// Date range options for balance history (time mode)
 	const historyRanges = [
 		{ days: 7, label: '1W' },
 		{ days: 30, label: '1M' },
 		{ days: 180, label: '6M' },
 		{ days: 0, label: 'All' }
+	];
+
+	// Event count options (events mode)
+	const eventCounts = [
+		{ count: 5, label: '5' },
+		{ count: 15, label: '15' },
+		{ count: 50, label: '50' },
+		{ count: 0, label: 'All' }
 	];
 
 	function setHistoryRange(days: number) {
@@ -36,6 +45,16 @@
 			url.searchParams.delete('historyDays');
 		} else {
 			url.searchParams.set('historyDays', days.toString());
+		}
+		goto(url.toString(), { keepFocus: true, noScroll: true });
+	}
+
+	function setEventCount(count: number) {
+		const url = new URL(window.location.href);
+		if (count === 15) {
+			url.searchParams.delete('eventCount');
+		} else {
+			url.searchParams.set('eventCount', count.toString());
 		}
 		goto(url.toString(), { keepFocus: true, noScroll: true });
 	}
@@ -184,7 +203,7 @@
 					<p class="text-lg font-bold text-orange-600">
 						{formatMoney(data.totalDeductions, data.settings?.currency ?? 'EUR')}
 					</p>
-					{#each data.deductions as deduction}
+					{#each data.deductions as deduction (deduction.id)}
 						<p class="text-xs text-orange-600">
 							{formatMoney(
 								deduction.amount,
@@ -286,26 +305,65 @@
 	{#if data.balanceHistory.length > 0}
 		<div class="card p-6">
 			<div class="flex items-center justify-between mb-4">
-				<h2 class="text-lg font-semibold text-gray-900">Balance History</h2>
-				<div class="flex gap-1">
-					{#each historyRanges as range (range.days)}
+				<div class="flex items-center gap-3">
+					<h2 class="text-lg font-semibold text-gray-900">Balance History</h2>
+					<div class="flex bg-gray-100 rounded-lg p-0.5">
 						<button
 							type="button"
-							class="px-2 py-1 text-xs rounded {data.historyDays === range.days
-								? 'bg-blue-100 text-blue-700 font-medium'
-								: 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
-							onclick={() => setHistoryRange(range.days)}
+							class="px-2 py-0.5 text-xs rounded-md transition-colors {chartMode === 'events'
+								? 'bg-white text-gray-900 font-medium shadow-sm'
+								: 'text-gray-500 hover:text-gray-700'}"
+							onclick={() => (chartMode = 'events')}
 						>
-							{range.label}
+							Events
 						</button>
-					{/each}
+						<button
+							type="button"
+							class="px-2 py-0.5 text-xs rounded-md transition-colors {chartMode === 'time'
+								? 'bg-white text-gray-900 font-medium shadow-sm'
+								: 'text-gray-500 hover:text-gray-700'}"
+							onclick={() => (chartMode = 'time')}
+						>
+							Time
+						</button>
+					</div>
+				</div>
+				<div class="flex gap-1">
+					{#if chartMode === 'events'}
+						{#each eventCounts as ec (ec.count)}
+							<button
+								type="button"
+								class="px-2 py-1 text-xs rounded {data.eventCount === ec.count
+									? 'bg-blue-100 text-blue-700 font-medium'
+									: 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
+								onclick={() => setEventCount(ec.count)}
+							>
+								{ec.label}
+							</button>
+						{/each}
+					{:else}
+						{#each historyRanges as range (range.days)}
+							<button
+								type="button"
+								class="px-2 py-1 text-xs rounded {data.historyDays === range.days
+									? 'bg-blue-100 text-blue-700 font-medium'
+									: 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
+								onclick={() => setHistoryRange(range.days)}
+							>
+								{range.label}
+							</button>
+						{/each}
+					{/if}
 				</div>
 			</div>
 			<div class="h-48">
 				<LineChart
 					data={data.balanceHistory}
+					events={data.balanceEvents}
 					color={colorHex}
 					currency={data.settings?.currency ?? 'EUR'}
+					upcomingPayments={data.upcomingPayments}
+					bind:mode={chartMode}
 				/>
 			</div>
 		</div>

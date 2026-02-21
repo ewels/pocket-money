@@ -58,7 +58,9 @@
 	"dependencies": {
 		"@tailwindcss/postcss": "^4.1.18",
 		"bcryptjs": "^3.0.3",
-		"chart.js": "^4.4.7"
+		"chart.js": "^4.4.7",
+		"chartjs-adapter-date-fns": "^3.0.0",
+		"date-fns": "^4.1.0"
 	},
 	"overrides": {
 		"cookie": "^0.7.2",

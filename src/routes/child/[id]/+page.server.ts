@@ -7,6 +7,7 @@ import {
 	getRecurringRules,
 	getTransactions,
 	getBalanceHistory,
+	getBalanceEventsByCount,
 	createTransaction,
 	createSavingTarget,
 	generateId,
@@ -43,12 +44,18 @@ export const load: PageServerLoad = async ({ params, locals, platform, url }) =>
 	const historyDays = historyDaysParam ? parseInt(historyDaysParam, 10) : 30;
 	const validHistoryDays = [0, 7, 30, 180].includes(historyDays) ? historyDays : 30;
 
+	// Parse event count from URL param (default 15, 0 means all)
+	const eventCountParam = url.searchParams.get('eventCount');
+	const eventCount = eventCountParam ? parseInt(eventCountParam, 10) : 15;
+	const validEventCount = [0, 5, 15, 50].includes(eventCount) ? eventCount : 15;
+
 	const [
 		balance,
 		targets,
 		recurringRules,
 		transactions,
 		balanceHistory,
+		balanceEvents,
 		deductions,
 		totalDeductions
 	] = await Promise.all([
@@ -57,6 +64,7 @@ export const load: PageServerLoad = async ({ params, locals, platform, url }) =>
 		getRecurringRules(db, child.id),
 		getTransactions(db, child.id),
 		getBalanceHistory(db, child.id, validHistoryDays),
+		getBalanceEventsByCount(db, child.id, validEventCount),
 		getDeductions(db, child.id),
 		getTotalDeductions(db, child.id)
 	]);
@@ -107,7 +115,9 @@ export const load: PageServerLoad = async ({ params, locals, platform, url }) =>
 		recurringRules,
 		transactions,
 		balanceHistory,
+		balanceEvents,
 		historyDays: validHistoryDays,
+		eventCount: validEventCount,
 		deductions,
 		totalDeductions,
 		nextPaymentAmount,

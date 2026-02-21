@@ -675,6 +675,151 @@ export async function getBalanceHistory(
 	return history;
 }
 
+export async function getBalanceEvents(
+	db: D1Database,
+	childId: string,
+	days = 30
+): Promise<{ date: string; balance: number; description: string | null }[]> {
+	// days=0 means "all time" - get first transaction date
+	const isAllTime = days === 0;
+
+	let startTime: number;
+
+	if (isAllTime) {
+		const firstTransaction = await db
+			.prepare('SELECT MIN(created_at) as first_date FROM transactions WHERE child_id = ?')
+			.bind(childId)
+			.first<{ first_date: number | null }>();
+
+		if (!firstTransaction?.first_date) {
+			return [];
+		}
+		startTime = firstTransaction.first_date;
+	} else {
+		startTime = Math.floor(Date.now() / 1000) - days * 24 * 60 * 60;
+	}
+
+	// Get balance before the start of the window
+	const balanceBeforeStart = await db
+		.prepare(
+			'SELECT COALESCE(SUM(amount), 0) as balance FROM transactions WHERE child_id = ? AND created_at < ?'
+		)
+		.bind(childId, startTime)
+		.first<{ balance: number }>();
+
+	const startBalance = balanceBeforeStart?.balance ?? 0;
+
+	// Get all transactions in the window with running totals
+	const result = await db
+		.prepare(
+			`SELECT
+			 created_at,
+			 amount,
+			 description,
+			 SUM(amount) OVER (ORDER BY created_at, rowid) as running_balance
+		   FROM transactions
+		   WHERE child_id = ? AND created_at >= ?
+		   ORDER BY created_at, rowid`
+		)
+		.bind(childId, startTime)
+		.all<{
+			created_at: number;
+			amount: number;
+			description: string | null;
+			running_balance: number;
+		}>();
+
+	const events: { date: string; balance: number; description: string | null }[] = [];
+
+	// Add starting point
+	const startDate = new Date(startTime * 1000);
+	events.push({
+		date: startDate.toISOString(),
+		balance: startBalance,
+		description: null
+	});
+
+	// Add each transaction as an event
+	for (const row of result.results) {
+		const eventDate = new Date(row.created_at * 1000);
+		events.push({
+			date: eventDate.toISOString(),
+			balance: startBalance + row.running_balance,
+			description: row.description
+		});
+	}
+
+	return events;
+}
+
+export async function getBalanceEventsByCount(
+	db: D1Database,
+	childId: string,
+	count: number
+): Promise<{ date: string; balance: number; description: string | null }[]> {
+	// count=0 means "all events"
+	const limitClause = count > 0 ? `LIMIT ${count}` : '';
+
+	// Get the last N transactions (ordered newest first, then we reverse)
+	const result = await db
+		.prepare(
+			`SELECT created_at, amount, description FROM transactions
+		   WHERE child_id = ?
+		   ORDER BY created_at DESC, rowid DESC
+		   ${limitClause}`
+		)
+		.bind(childId)
+		.all<{
+			created_at: number;
+			amount: number;
+			description: string | null;
+		}>();
+
+	if (result.results.length === 0) {
+		return [];
+	}
+
+	// Reverse to chronological order
+	const transactions = result.results.reverse();
+
+	// Get balance before the earliest transaction in this window
+	const earliestTime = transactions[0].created_at;
+	const balanceBeforeStart = await db
+		.prepare(
+			'SELECT COALESCE(SUM(amount), 0) as balance FROM transactions WHERE child_id = ? AND created_at < ?'
+		)
+		.bind(childId, earliestTime)
+		.first<{ balance: number }>();
+
+	// Also count transactions at the same timestamp that come before (by rowid)
+	// For simplicity, use the sum of all transactions before the start time
+	const startBalance = balanceBeforeStart?.balance ?? 0;
+
+	const events: { date: string; balance: number; description: string | null }[] = [];
+
+	// Add starting point
+	const startDate = new Date(earliestTime * 1000);
+	events.push({
+		date: startDate.toISOString(),
+		balance: startBalance,
+		description: null
+	});
+
+	// Add each transaction as an event with running balance
+	let runningBalance = startBalance;
+	for (const row of transactions) {
+		runningBalance += row.amount;
+		const eventDate = new Date(row.created_at * 1000);
+		events.push({
+			date: eventDate.toISOString(),
+			balance: runningBalance,
+			description: row.description
+		});
+	}
+
+	return events;
+}
+
 // Deduction functions
 export async function getDeductions(db: D1Database, childId: string): Promise<Deduction[]> {
 	const result = await db
