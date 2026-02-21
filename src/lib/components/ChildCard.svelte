@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getInitials, colorHexMap, calculateProgress, type ChildColor } from '$lib/utils';
+	import { getInitials, colorHexMap, type ChildColor } from '$lib/utils';
 	import { formatMoney } from '$lib/currencies';
 	import DoughnutChart from './DoughnutChart.svelte';
 
@@ -20,7 +20,6 @@
 	let { child, currency }: { child: Child; currency: string } = $props();
 
 	const colorClass = $derived(`bg-child-${child.color}` as const);
-	const topTarget = $derived(child.targets[0]);
 </script>
 
 <a href="/child/{child.id}" class="card hover:shadow-md transition-shadow">
@@ -45,17 +44,15 @@
 					{formatMoney(child.balance, currency)}
 				</p>
 			</div>
-			{#if topTarget}
-				<div class="text-center shrink-0">
+			{#if child.targets.length > 0}
+				<div class="shrink-0">
 					<div class="w-12 h-12">
 						<DoughnutChart
-							progress={calculateProgress(child.balance, topTarget.target_amount)}
+							targets={child.targets}
+							balance={child.balance}
 							color={colorHexMap[child.color as ChildColor] ?? colorHexMap.blue}
 						/>
 					</div>
-					<p class="mt-1 text-xs text-gray-500 truncate max-w-[48px]" title={topTarget.name}>
-						{topTarget.name}
-					</p>
 				</div>
 			{/if}
 		</div>
