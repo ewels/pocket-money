@@ -1,6 +1,6 @@
 {
 	"name": "pocket-money",
-	"version": "0.0.1",
+	"version": "1.2.0",
 	"private": true,
 	"scripts": {
 		"dev": "vite dev",
@@ -13,8 +13,8 @@
 		"lint": "eslint .",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
-		"db:migrate": "wrangler d1 execute pocket-money-db --local --file=./migrations/0001_initial.sql",
-		"db:migrate:prod": "wrangler d1 execute pocket-money-db --file=./migrations/0001_initial.sql",
+		"db:migrate": "for f in ./migrations/*.sql; do wrangler d1 execute pocket-money-db --local --file=\"$f\"; done",
+		"db:migrate:prod": "for f in ./migrations/*.sql; do wrangler d1 execute pocket-money-db --file=\"$f\"; done",
 		"screenshots": "npx tsx scripts/capture-screenshots.ts",
 		"prepare": "husky"
 	},
@@ -58,7 +58,9 @@
 	"dependencies": {
 		"@tailwindcss/postcss": "^4.1.18",
 		"bcryptjs": "^3.0.3",
-		"chart.js": "^4.4.7"
+		"chart.js": "^4.4.7",
+		"chartjs-adapter-date-fns": "^3.0.0",
+		"date-fns": "^4.1.0"
 	},
 	"overrides": {
 		"cookie": "^0.7.2",

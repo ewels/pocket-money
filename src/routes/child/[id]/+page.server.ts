@@ -7,6 +7,7 @@ import {
 	getRecurringRules,
 	getTransactions,
 	getBalanceHistory,
+	getBalanceEventsByCount,
 	createTransaction,
 	createSavingTarget,
 	generateId,
@@ -43,12 +44,18 @@ export const load: PageServerLoad = async ({ params, locals, platform, url }) =>
 	const historyDays = historyDaysParam ? parseInt(historyDaysParam, 10) : 30;
 	const validHistoryDays = [0, 7, 30, 180].includes(historyDays) ? historyDays : 30;
 
+	// Parse event count from URL param (default 15, 0 means all)
+	const eventCountParam = url.searchParams.get('eventCount');
+	const eventCount = eventCountParam ? parseInt(eventCountParam, 10) : 15;
+	const validEventCount = [0, 5, 15, 50].includes(eventCount) ? eventCount : 15;
+
 	const [
 		balance,
 		targets,
 		recurringRules,
 		transactions,
 		balanceHistory,
+		balanceEvents,
 		deductions,
 		totalDeductions
 	] = await Promise.all([
@@ -57,6 +64,7 @@ export const load: PageServerLoad = async ({ params, locals, platform, url }) =>
 		getRecurringRules(db, child.id),
 		getTransactions(db, child.id),
 		getBalanceHistory(db, child.id, validHistoryDays),
+		getBalanceEventsByCount(db, child.id, validEventCount),
 		getDeductions(db, child.id),
 		getTotalDeductions(db, child.id)
 	]);
@@ -64,7 +72,9 @@ export const load: PageServerLoad = async ({ params, locals, platform, url }) =>
 	// Calculate next payment amount from active recurring rules
 	const activeRules = recurringRules.filter((r) => r.active);
 	const nextPaymentAmount =
-		activeRules.length > 0 ? Math.min(...activeRules.map((r) => r.amount)) : 0;
+		activeRules.length > 0
+			? activeRules.slice().sort((a, b) => a.next_run_at - b.next_run_at)[0].amount
+			: 0;
 
 	// Calculate upcoming payments (next 3)
 	const upcomingPayments = activeRules
@@ -105,7 +115,9 @@ export const load: PageServerLoad = async ({ params, locals, platform, url }) =>
 		recurringRules,
 		transactions,
 		balanceHistory,
+		balanceEvents,
 		historyDays: validHistoryDays,
+		eventCount: validEventCount,
 		deductions,
 		totalDeductions,
 		nextPaymentAmount,
@@ -336,6 +348,89 @@ export const actions: Actions = {
 			amount,
 			description,
 			created_by: locals.user.id
+		});
+
+		return { success: true };
+	},
+
+	advance: async ({ params, request, locals, platform }) => {
+		if (!locals.user?.family_id) {
+			return fail(401, { error: 'Not authenticated' });
+		}
+
+		const db = platform?.env?.DB;
+		if (!db) {
+			return fail(500, { error: 'Database not available' });
+		}
+
+		// Verify child ownership
+		const child = await getChild(db, params.id);
+		if (!child || child.family_id !== locals.user.family_id) {
+			return fail(403, { error: 'Access denied' });
+		}
+
+		const formData = await request.formData();
+		const amountStr = formData.get('amount')?.toString();
+		const description = formData.get('description')?.toString().trim() || null;
+
+		if (!amountStr) {
+			return fail(400, { error: 'Amount is required' });
+		}
+
+		const amount = parseFloat(amountStr);
+		if (isNaN(amount) || amount <= 0) {
+			return fail(400, { error: 'Invalid amount' });
+		}
+
+		// Verify child has active recurring rules (otherwise nothing to advance)
+		const recurringRules = await getRecurringRules(db, params.id);
+		const activeRules = recurringRules.filter((r) => r.active);
+		if (activeRules.length === 0) {
+			return fail(400, { error: 'No active recurring payments to advance' });
+		}
+
+		// Create transaction and deduction atomically
+		const transactionId = generateId();
+		const deductionId = generateId();
+		await db.batch([
+			db
+				.prepare(
+					'INSERT INTO transactions (id, child_id, user_id, amount, description, is_recurring, recurring_rule_id) VALUES (?, ?, ?, ?, ?, ?, ?)'
+				)
+				.bind(
+					transactionId,
+					params.id,
+					locals.user.id,
+					amount,
+					description || 'Advance payment',
+					0,
+					null
+				),
+			db
+				.prepare(
+					'INSERT INTO deductions (id, child_id, amount, description, created_by) VALUES (?, ?, ?, ?, ?)'
+				)
+				.bind(
+					deductionId,
+					params.id,
+					amount,
+					description ? `Advanced: ${description}` : 'Advance payment',
+					locals.user.id
+				)
+		]);
+
+		const newBalance = await getChildBalance(db, params.id);
+
+		await sendWebhook(db, locals.user.family_id, 'transaction.created', {
+			transaction_id: transactionId,
+			child_id: params.id,
+			child_name: child?.name,
+			amount,
+			description: description || 'Advance payment',
+			type: 'advance',
+			new_balance: newBalance,
+			user_id: locals.user.id,
+			user_name: locals.user.name
 		});
 
 		return { success: true };

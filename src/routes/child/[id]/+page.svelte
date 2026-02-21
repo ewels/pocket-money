@@ -12,19 +12,31 @@
 
 	let showAddMoney = $state(false);
 	let showWithdraw = $state(false);
+	let showAdvance = $state(false);
 	let showAddTarget = $state(false);
 	let showDeductions = $state(false);
 	let loading = $state(false);
+	let chartMode = $state<'events' | 'time'>('events');
+
+	const hasActiveRules = $derived(data.recurringRules.some((r: { active: number }) => r.active));
 
 	const color = $derived(data.child.color as ChildColor);
 	const colorHex = $derived(colorHexMap[color] ?? colorHexMap.blue);
 
-	// Date range options for balance history
+	// Date range options for balance history (time mode)
 	const historyRanges = [
 		{ days: 7, label: '1W' },
 		{ days: 30, label: '1M' },
 		{ days: 180, label: '6M' },
 		{ days: 0, label: 'All' }
+	];
+
+	// Event count options (events mode)
+	const eventCounts = [
+		{ count: 5, label: '5' },
+		{ count: 15, label: '15' },
+		{ count: 50, label: '50' },
+		{ count: 0, label: 'All' }
 	];
 
 	function setHistoryRange(days: number) {
@@ -33,6 +45,16 @@
 			url.searchParams.delete('historyDays');
 		} else {
 			url.searchParams.set('historyDays', days.toString());
+		}
+		goto(url.toString(), { keepFocus: true, noScroll: true });
+	}
+
+	function setEventCount(count: number) {
+		const url = new URL(window.location.href);
+		if (count === 15) {
+			url.searchParams.delete('eventCount');
+		} else {
+			url.searchParams.set('eventCount', count.toString());
 		}
 		goto(url.toString(), { keepFocus: true, noScroll: true });
 	}
@@ -98,7 +120,7 @@
 	</div>
 
 	<!-- Action buttons -->
-	<div class="flex gap-3">
+	<div class="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
 		<button type="button" class="btn-success flex-1" onclick={() => (showAddMoney = true)}>
 			<svg
 				class="mr-2 h-5 w-5"
@@ -123,33 +145,53 @@
 			</svg>
 			Withdraw
 		</button>
-		<button
-			type="button"
-			class="btn-warning flex-1 relative"
-			onclick={() => (showDeductions = true)}
-		>
-			<svg
-				class="mr-2 h-5 w-5"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke-width="1.5"
-				stroke="currentColor"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
-				/>
-			</svg>
-			Deduct
-			{#if data.totalDeductions > 0}
-				<span
-					class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white"
+		{#if hasActiveRules}
+			<button type="button" class="btn-info flex-1" onclick={() => (showAdvance = true)}>
+				<svg
+					class="mr-2 h-5 w-5"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke-width="1.5"
+					stroke="currentColor"
 				>
-					{data.deductions.length}
-				</span>
-			{/if}
-		</button>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M3 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 010 1.954l-7.108 4.061A1.125 1.125 0 013 16.811V8.69zM12.75 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 010 1.954l-7.108 4.061a1.125 1.125 0 01-1.683-.977V8.69z"
+					/>
+				</svg>
+				Advance
+			</button>
+		{/if}
+		{#if hasActiveRules || data.totalDeductions > 0}
+			<button
+				type="button"
+				class="btn-warning flex-1 relative"
+				onclick={() => (showDeductions = true)}
+			>
+				<svg
+					class="mr-2 h-5 w-5"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke-width="1.5"
+					stroke="currentColor"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+					/>
+				</svg>
+				Deduct
+				{#if data.totalDeductions > 0}
+					<span
+						class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white"
+					>
+						{data.deductions.length}
+					</span>
+				{/if}
+			</button>
+		{/if}
 	</div>
 
 	<!-- Pending Deductions Card -->
@@ -161,7 +203,15 @@
 					<p class="text-lg font-bold text-orange-600">
 						{formatMoney(data.totalDeductions, data.settings?.currency ?? 'EUR')}
 					</p>
-					<p class="text-xs text-orange-600">
+					{#each data.deductions as deduction (deduction.id)}
+						<p class="text-xs text-orange-600">
+							{formatMoney(
+								deduction.amount,
+								data.settings?.currency ?? 'EUR'
+							)}{deduction.description ? `: ${deduction.description}` : ''}
+						</p>
+					{/each}
+					<p class="text-xs text-orange-600 mt-1">
 						Will reduce the next {data.deductions.length === 1 ? 'payment' : 'payments'}
 					</p>
 				</div>
@@ -254,27 +304,66 @@
 	<!-- Balance History Chart -->
 	{#if data.balanceHistory.length > 0}
 		<div class="card p-6">
-			<div class="flex items-center justify-between mb-4">
-				<h2 class="text-lg font-semibold text-gray-900">Balance History</h2>
-				<div class="flex gap-1">
-					{#each historyRanges as range (range.days)}
+			<div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
+				<div class="flex items-center gap-3">
+					<h2 class="text-lg font-semibold text-gray-900">Balance History</h2>
+					<div class="flex bg-gray-100 rounded-lg p-0.5">
 						<button
 							type="button"
-							class="px-2 py-1 text-xs rounded {data.historyDays === range.days
-								? 'bg-blue-100 text-blue-700 font-medium'
-								: 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
-							onclick={() => setHistoryRange(range.days)}
+							class="px-2 py-0.5 text-xs rounded-md transition-colors {chartMode === 'events'
+								? 'bg-white text-gray-900 font-medium shadow-sm'
+								: 'text-gray-500 hover:text-gray-700'}"
+							onclick={() => (chartMode = 'events')}
 						>
-							{range.label}
+							Events
 						</button>
-					{/each}
+						<button
+							type="button"
+							class="px-2 py-0.5 text-xs rounded-md transition-colors {chartMode === 'time'
+								? 'bg-white text-gray-900 font-medium shadow-sm'
+								: 'text-gray-500 hover:text-gray-700'}"
+							onclick={() => (chartMode = 'time')}
+						>
+							Time
+						</button>
+					</div>
+				</div>
+				<div class="flex gap-1">
+					{#if chartMode === 'events'}
+						{#each eventCounts as ec (ec.count)}
+							<button
+								type="button"
+								class="px-2 py-1 text-xs rounded {data.eventCount === ec.count
+									? 'bg-blue-100 text-blue-700 font-medium'
+									: 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
+								onclick={() => setEventCount(ec.count)}
+							>
+								{ec.label}
+							</button>
+						{/each}
+					{:else}
+						{#each historyRanges as range (range.days)}
+							<button
+								type="button"
+								class="px-2 py-1 text-xs rounded {data.historyDays === range.days
+									? 'bg-blue-100 text-blue-700 font-medium'
+									: 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
+								onclick={() => setHistoryRange(range.days)}
+							>
+								{range.label}
+							</button>
+						{/each}
+					{/if}
 				</div>
 			</div>
 			<div class="h-48">
 				<LineChart
 					data={data.balanceHistory}
+					events={data.balanceEvents}
 					color={colorHex}
 					currency={data.settings?.currency ?? 'EUR'}
+					upcomingPayments={data.upcomingPayments}
+					bind:mode={chartMode}
 				/>
 			</div>
 		</div>
@@ -446,6 +535,80 @@
 						>
 						<button type="submit" class="btn-danger" disabled={loading}>
 							{loading ? 'Withdrawing...' : 'Withdraw'}
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+{/if}
+
+<!-- Advance Payment Modal -->
+{#if showAdvance}
+	<div class="fixed inset-0 z-50 overflow-y-auto">
+		<div class="flex min-h-full items-center justify-center p-4">
+			<button
+				type="button"
+				class="fixed inset-0 bg-black/50"
+				onclick={() => (showAdvance = false)}
+				aria-label="Close"
+			></button>
+			<div class="relative w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+				<h2 class="text-lg font-semibold text-gray-900">Advance Payment</h2>
+				<p class="mt-1 text-sm text-gray-500">
+					This will add the amount to the balance now and deduct it from the next scheduled payment.
+				</p>
+				<form
+					method="POST"
+					action="?/advance"
+					use:enhance={() => {
+						loading = true;
+						return async ({ result, update }) => {
+							loading = false;
+							if (result.type === 'success') showAdvance = false;
+							await update();
+						};
+					}}
+					class="mt-4 space-y-4"
+				>
+					<div>
+						<label for="advanceAmount" class="label">Amount</label>
+						<input
+							id="advanceAmount"
+							name="amount"
+							type="number"
+							step="0.01"
+							min="0.01"
+							required
+							class="input"
+							placeholder="0.00"
+							value={data.nextPaymentAmount > 0 ? data.nextPaymentAmount : ''}
+						/>
+						{#if data.nextPaymentAmount > 0}
+							<p class="mt-1 text-xs text-gray-500">
+								Pre-filled with next payment amount ({formatMoney(
+									data.nextPaymentAmount,
+									data.settings?.currency ?? 'EUR'
+								)})
+							</p>
+						{/if}
+					</div>
+					<div>
+						<label for="advanceDescription" class="label">Description (optional)</label>
+						<input
+							id="advanceDescription"
+							name="description"
+							type="text"
+							class="input"
+							placeholder="e.g., Early pocket money"
+						/>
+					</div>
+					<div class="flex justify-end gap-3 pt-4">
+						<button type="button" class="btn-secondary" onclick={() => (showAdvance = false)}
+							>Cancel</button
+						>
+						<button type="submit" class="btn-info" disabled={loading}>
+							{loading ? 'Advancing...' : 'Advance Payment'}
 						</button>
 					</div>
 				</form>
