@@ -340,6 +340,10 @@ export const actions: Actions = {
 		const dayOfMonth = formData.get('dayOfMonth')
 			? parseInt(formData.get('dayOfMonth')!.toString(), 10)
 			: null;
+		const timeOfDay = formData.get('timeOfDay')
+			? parseInt(formData.get('timeOfDay')!.toString(), 10)
+			: 7;
+		const timezone = formData.get('timezone')?.toString() || 'Europe/London';
 
 		if (!amountStr) {
 			return fail(400, { error: 'Amount is required' });
@@ -350,13 +354,29 @@ export const actions: Actions = {
 			return fail(400, { error: 'Invalid amount' });
 		}
 
+		if (isNaN(timeOfDay) || timeOfDay < 0 || timeOfDay > 23) {
+			return fail(400, { error: 'Time of day must be between 0 and 23' });
+		}
+		try {
+			Intl.DateTimeFormat(undefined, { timeZone: timezone });
+		} catch {
+			return fail(400, { error: 'Invalid timezone' });
+		}
+
 		// Calculate interval_days for backwards compatibility
 		let intervalDays = 7;
 		if (intervalType === 'daily') intervalDays = 1;
 		else if (intervalType === 'weekly') intervalDays = 7;
 		else if (intervalType === 'monthly') intervalDays = 30;
 
-		const nextRun = calculateNextRun(intervalType, intervalDays, dayOfWeek, dayOfMonth);
+		const nextRun = calculateNextRun(
+			intervalType,
+			intervalDays,
+			dayOfWeek,
+			dayOfMonth,
+			timeOfDay,
+			timezone
+		);
 
 		await createRecurringRule(db, {
 			id: generateId(),
@@ -367,6 +387,8 @@ export const actions: Actions = {
 			interval_type: intervalType,
 			day_of_week: dayOfWeek,
 			day_of_month: dayOfMonth,
+			time_of_day: timeOfDay,
+			timezone,
 			next_run_at: nextRun,
 			active: 1
 		});
@@ -429,6 +451,10 @@ export const actions: Actions = {
 		const dayOfMonth = formData.get('dayOfMonth')
 			? parseInt(formData.get('dayOfMonth')!.toString(), 10)
 			: null;
+		const timeOfDay = formData.get('timeOfDay')
+			? parseInt(formData.get('timeOfDay')!.toString(), 10)
+			: 7;
+		const timezone = formData.get('timezone')?.toString() || 'Europe/London';
 
 		if (!ruleId || !amountStr) {
 			return fail(400, { error: 'Rule ID and amount are required' });
@@ -439,11 +465,30 @@ export const actions: Actions = {
 			return fail(400, { error: 'Invalid amount' });
 		}
 
+		if (isNaN(timeOfDay) || timeOfDay < 0 || timeOfDay > 23) {
+			return fail(400, { error: 'Time of day must be between 0 and 23' });
+		}
+		try {
+			Intl.DateTimeFormat(undefined, { timeZone: timezone });
+		} catch {
+			return fail(400, { error: 'Invalid timezone' });
+		}
+
 		// Calculate interval_days for backwards compatibility
 		let intervalDays = 7;
 		if (intervalType === 'daily') intervalDays = 1;
 		else if (intervalType === 'weekly') intervalDays = 7;
 		else if (intervalType === 'monthly') intervalDays = 30;
+
+		// Recalculate next_run_at when interval settings change
+		const nextRun = calculateNextRun(
+			intervalType,
+			intervalDays,
+			dayOfWeek,
+			dayOfMonth,
+			timeOfDay,
+			timezone
+		);
 
 		await updateRecurringRule(db, ruleId, {
 			amount,
@@ -451,7 +496,10 @@ export const actions: Actions = {
 			interval_days: intervalDays,
 			interval_type: intervalType,
 			day_of_week: dayOfWeek,
-			day_of_month: dayOfMonth
+			day_of_month: dayOfMonth,
+			time_of_day: timeOfDay,
+			timezone,
+			next_run_at: nextRun
 		});
 
 		return { success: 'Recurring payment updated' };

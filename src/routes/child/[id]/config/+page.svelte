@@ -19,10 +19,46 @@
 
 	// Recurring payment form state
 	let newIntervalType = $state<'daily' | 'weekly' | 'monthly'>('weekly');
-	let newDayOfWeek = $state(1); // Monday
+	let newDayOfWeek = $state(0); // Sunday
 	let newDayOfMonth = $state(1);
+	let newTimeOfDay = $state(7); // 7 AM
+	let newTimezone = $state(Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/London');
 
 	const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+	// Common timezones with city names for DST handling
+	const timezones = [
+		{ value: 'Europe/London', label: 'London (GMT/BST)' },
+		{ value: 'Europe/Dublin', label: 'Dublin (GMT/IST)' },
+		{ value: 'Europe/Paris', label: 'Paris (CET/CEST)' },
+		{ value: 'Europe/Berlin', label: 'Berlin (CET/CEST)' },
+		{ value: 'Europe/Amsterdam', label: 'Amsterdam (CET/CEST)' },
+		{ value: 'Europe/Brussels', label: 'Brussels (CET/CEST)' },
+		{ value: 'Europe/Madrid', label: 'Madrid (CET/CEST)' },
+		{ value: 'Europe/Rome', label: 'Rome (CET/CEST)' },
+		{ value: 'Europe/Stockholm', label: 'Stockholm (CET/CEST)' },
+		{ value: 'Europe/Oslo', label: 'Oslo (CET/CEST)' },
+		{ value: 'Europe/Copenhagen', label: 'Copenhagen (CET/CEST)' },
+		{ value: 'Europe/Helsinki', label: 'Helsinki (EET/EEST)' },
+		{ value: 'Europe/Athens', label: 'Athens (EET/EEST)' },
+		{ value: 'Europe/Moscow', label: 'Moscow (MSK)' },
+		{ value: 'America/New_York', label: 'New York (EST/EDT)' },
+		{ value: 'America/Chicago', label: 'Chicago (CST/CDT)' },
+		{ value: 'America/Denver', label: 'Denver (MST/MDT)' },
+		{ value: 'America/Los_Angeles', label: 'Los Angeles (PST/PDT)' },
+		{ value: 'America/Toronto', label: 'Toronto (EST/EDT)' },
+		{ value: 'America/Vancouver', label: 'Vancouver (PST/PDT)' },
+		{ value: 'Asia/Tokyo', label: 'Tokyo (JST)' },
+		{ value: 'Asia/Shanghai', label: 'Shanghai (CST)' },
+		{ value: 'Asia/Hong_Kong', label: 'Hong Kong (HKT)' },
+		{ value: 'Asia/Singapore', label: 'Singapore (SGT)' },
+		{ value: 'Asia/Dubai', label: 'Dubai (GST)' },
+		{ value: 'Asia/Kolkata', label: 'Mumbai (IST)' },
+		{ value: 'Australia/Sydney', label: 'Sydney (AEST/AEDT)' },
+		{ value: 'Australia/Melbourne', label: 'Melbourne (AEST/AEDT)' },
+		{ value: 'Australia/Perth', label: 'Perth (AWST)' },
+		{ value: 'Pacific/Auckland', label: 'Auckland (NZST/NZDT)' }
+	];
 
 	// Drag and drop state
 	let draggedTargetId = $state<string | null>(null);
@@ -549,8 +585,10 @@
 							if (result.type === 'success') {
 								showAddRecurring = false;
 								newIntervalType = 'weekly';
-								newDayOfWeek = 1;
+								newDayOfWeek = 0;
 								newDayOfMonth = 1;
+								newTimeOfDay = 7;
+								newTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/London';
 							}
 							await update();
 						};
@@ -615,6 +653,27 @@
 							</p>
 						</div>
 					{/if}
+					<div class="grid grid-cols-2 gap-4">
+						<div>
+							<label for="timeOfDay" class="label">Time of day</label>
+							<select id="timeOfDay" name="timeOfDay" class="input" bind:value={newTimeOfDay}>
+								{#each Array.from({ length: 24 }, (_, i) => i) as hour}
+									<option value={hour}>{hour.toString().padStart(2, '0')}:00</option>
+								{/each}
+							</select>
+						</div>
+						<div>
+							<label for="timezone" class="label">Timezone</label>
+							<select id="timezone" name="timezone" class="input" bind:value={newTimezone}>
+								{#each timezones as tz}
+									<option value={tz.value}>{tz.label}</option>
+								{/each}
+							</select>
+						</div>
+					</div>
+					<p class="text-xs text-gray-500">
+						Timings are approximate. Payments process within an hour of the scheduled time.
+					</p>
 					<div class="flex justify-end gap-3 pt-4">
 						<button type="button" class="btn-secondary" onclick={() => (showAddRecurring = false)}
 							>Cancel</button
@@ -839,6 +898,31 @@
 								</p>
 							</div>
 						{/if}
+						<div class="grid grid-cols-2 gap-4">
+							<div>
+								<label for="editTimeOfDay" class="label">Time of day</label>
+								<select id="editTimeOfDay" name="timeOfDay" class="input">
+									{#each Array.from({ length: 24 }, (_, i) => i) as hour}
+										<option value={hour} selected={rule.time_of_day === hour}
+											>{hour.toString().padStart(2, '0')}:00</option
+										>
+									{/each}
+								</select>
+							</div>
+							<div>
+								<label for="editTimezone" class="label">Timezone</label>
+								<select id="editTimezone" name="timezone" class="input">
+									{#each timezones as tz}
+										<option value={tz.value} selected={rule.timezone === tz.value}
+											>{tz.label}</option
+										>
+									{/each}
+								</select>
+							</div>
+						</div>
+						<p class="text-xs text-gray-500">
+							Timings are approximate. Payments process within an hour of the scheduled time.
+						</p>
 						<div class="flex justify-end gap-3 pt-4">
 							<button type="button" class="btn-secondary" onclick={() => (editingRule = null)}
 								>Cancel</button
