@@ -6,6 +6,7 @@
 	import ColorPicker from '$lib/components/ColorPicker.svelte';
 	import PhotoUpload from '$lib/components/PhotoUpload.svelte';
 	import AddTargetModal from '$lib/components/AddTargetModal.svelte';
+	import TimezoneSelect from '$lib/components/TimezoneSelect.svelte';
 
 	let { data, form } = $props();
 
@@ -25,40 +26,6 @@
 	let newTimezone = $state(Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/London');
 
 	const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-	// Common timezones with city names for DST handling
-	const timezones = [
-		{ value: 'Europe/London', label: 'London (GMT/BST)' },
-		{ value: 'Europe/Dublin', label: 'Dublin (GMT/IST)' },
-		{ value: 'Europe/Paris', label: 'Paris (CET/CEST)' },
-		{ value: 'Europe/Berlin', label: 'Berlin (CET/CEST)' },
-		{ value: 'Europe/Amsterdam', label: 'Amsterdam (CET/CEST)' },
-		{ value: 'Europe/Brussels', label: 'Brussels (CET/CEST)' },
-		{ value: 'Europe/Madrid', label: 'Madrid (CET/CEST)' },
-		{ value: 'Europe/Rome', label: 'Rome (CET/CEST)' },
-		{ value: 'Europe/Stockholm', label: 'Stockholm (CET/CEST)' },
-		{ value: 'Europe/Oslo', label: 'Oslo (CET/CEST)' },
-		{ value: 'Europe/Copenhagen', label: 'Copenhagen (CET/CEST)' },
-		{ value: 'Europe/Helsinki', label: 'Helsinki (EET/EEST)' },
-		{ value: 'Europe/Athens', label: 'Athens (EET/EEST)' },
-		{ value: 'Europe/Moscow', label: 'Moscow (MSK)' },
-		{ value: 'America/New_York', label: 'New York (EST/EDT)' },
-		{ value: 'America/Chicago', label: 'Chicago (CST/CDT)' },
-		{ value: 'America/Denver', label: 'Denver (MST/MDT)' },
-		{ value: 'America/Los_Angeles', label: 'Los Angeles (PST/PDT)' },
-		{ value: 'America/Toronto', label: 'Toronto (EST/EDT)' },
-		{ value: 'America/Vancouver', label: 'Vancouver (PST/PDT)' },
-		{ value: 'Asia/Tokyo', label: 'Tokyo (JST)' },
-		{ value: 'Asia/Shanghai', label: 'Shanghai (CST)' },
-		{ value: 'Asia/Hong_Kong', label: 'Hong Kong (HKT)' },
-		{ value: 'Asia/Singapore', label: 'Singapore (SGT)' },
-		{ value: 'Asia/Dubai', label: 'Dubai (GST)' },
-		{ value: 'Asia/Kolkata', label: 'Mumbai (IST)' },
-		{ value: 'Australia/Sydney', label: 'Sydney (AEST/AEDT)' },
-		{ value: 'Australia/Melbourne', label: 'Melbourne (AEST/AEDT)' },
-		{ value: 'Australia/Perth', label: 'Perth (AWST)' },
-		{ value: 'Pacific/Auckland', label: 'Auckland (NZST/NZDT)' }
-	];
 
 	// Drag and drop state
 	let draggedTargetId = $state<string | null>(null);
@@ -664,11 +631,7 @@
 						</div>
 						<div>
 							<label for="timezone" class="label">Timezone</label>
-							<select id="timezone" name="timezone" class="input" bind:value={newTimezone}>
-								{#each timezones as tz}
-									<option value={tz.value}>{tz.label}</option>
-								{/each}
-							</select>
+							<TimezoneSelect id="timezone" name="timezone" bind:value={newTimezone} />
 						</div>
 					</div>
 					<p class="text-xs text-gray-500">
@@ -911,13 +874,11 @@
 							</div>
 							<div>
 								<label for="editTimezone" class="label">Timezone</label>
-								<select id="editTimezone" name="timezone" class="input">
-									{#each timezones as tz}
-										<option value={tz.value} selected={rule.timezone === tz.value}
-											>{tz.label}</option
-										>
-									{/each}
-								</select>
+								<TimezoneSelect
+									id="editTimezone"
+									name="timezone"
+									value={rule.timezone ?? 'Europe/London'}
+								/>
 							</div>
 						</div>
 						<p class="text-xs text-gray-500">
